@@ -1,0 +1,33 @@
+{
+  "name": "kproyect",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "09X17",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "axios": "^1.12.2",
+    "canvas": "^3.2.0",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "discord.js": "^14.22.1",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
+    "express-session": "^1.18.2",
+    "fs": "^0.0.1-security",
+    "mongoose": "^8.18.1",
+    "node-fetch": "^3.3.2",
+    "passport": "^0.7.0",
+    "passport-discord": "^0.1.4",
+    "path": "^0.12.7",
+    "sharp": "^0.34.4",
+    "url": "^0.11.4",
+    "uuid": "^13.0.0"
+  }
+}
