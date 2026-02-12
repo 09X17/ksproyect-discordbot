@@ -80,27 +80,17 @@ const shopItemSchema = new mongoose.Schema({
         default: '#5865F2'
     },
     data: {
-        // Roles
         roleId: String,
-
-        // Boosts
-        duration: Number, // segundos
+        duration: Number, 
         multiplier: Number,
         stackable: { type: Boolean, default: false },
-
-        // Economía / XP
         xpAmount: Number,
         coinsAmount: Number,
         tokensAmount: Number,
-
-        // Cosméticos
         badgeId: String,
         title: String,
         hexColor: String,
-
         permission: String,
-
-        // Custom
         command: String
     },
     requirements: {
@@ -186,24 +176,24 @@ const shopItemSchema = new mongoose.Schema({
             default: 1
         },
         requiredForGiveaway: {
-            type: String, // ID del sorteo específico
+            type: String, 
             default: null
         },
         giveawayQuantity: {
-            type: Number, // Cantidad necesaria para entrar
+            type: Number, 
             default: 1
         },
-        consumable: { // Si se consume al usarlo
+        consumable: { 
             type: Boolean,
             default: true
         },
-        stackable: { // Si se pueden acumular
+        stackable: { 
             type: Boolean,
             default: true
         },
         expirationDays: {
             type: Number,
-            default: 0 // 0 = no expira
+            default: 0
         }
     },
     giveawayValidation: {
@@ -217,10 +207,10 @@ const shopItemSchema = new mongoose.Schema({
         },
         maxTickets: {
             type: Number,
-            default: 0 // 0 = ilimitado
+            default: 0 
         },
-        allowedGiveaways: [String], // IDs de sorteos permitidos
-        exclusiveToGiveaway: String // Solo para un sorteo específico
+        allowedGiveaways: [String], 
+        exclusiveToGiveaway: String 
     },
     active: {
         type: Boolean,
@@ -235,48 +225,38 @@ const shopItemSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Índices
 shopItemSchema.index({ guildId: 1, name: 1 }, { unique: true });
 shopItemSchema.index({ guildId: 1, type: 1 });
 shopItemSchema.index({ guildId: 1, category: 1 });
 shopItemSchema.index({ guildId: 1, price: 1 });
 shopItemSchema.index({ 'metadata.tags': 1 });
 
-// Métodos
 shopItemSchema.methods.canPurchase = async function (userLevel, member, purchasesToday = 0) {
-    // Verificar si está activo
     if (!this.active) {
         return { canBuy: false, reason: 'Este artículo no está disponible' };
     }
 
-    // Verificar stock
     if (this.stock === 0) {
         return { canBuy: false, reason: 'Agotado' };
     }
 
-    // Verificar nivel mínimo
     if (this.requirements.minLevel > 0 && userLevel.level < this.requirements.minLevel) {
         return { canBuy: false, reason: `Requiere nivel ${this.requirements.minLevel}` };
     }
 
-    // Verificar nivel máximo
     if (this.requirements.maxLevel && userLevel.level > this.requirements.maxLevel) {
         return { canBuy: false, reason: `Máximo nivel ${this.requirements.maxLevel}` };
     }
 
-    // Verificar roles requeridos
     for (const roleId of this.requirements.requiredRoles) {
         if (!member.roles.cache.has(roleId)) {
             return { canBuy: false, reason: 'Roles requeridos no encontrados' };
         }
     }
 
-    // Verificar límite por usuario
     if (this.purchaseLimit.perUser > 0) {
-        // Aquí se implementaría la verificación de compras previas
     }
 
-    // Verificar límite diario
     if (this.purchaseLimit.perDay > 0 && purchasesToday >= this.purchaseLimit.perDay) {
         return { canBuy: false, reason: 'Límite diario alcanzado' };
     }
@@ -325,16 +305,13 @@ shopItemSchema.methods.applyEffects = async function (userLevel, member) {
         userLevel.customization.permissions ??= {};
         userLevel.customization.active ??= {};
 
-        // Validar permisos permitidos
         if (!permission.startsWith('rank_color_') &&
             !['customBackground', 'customTitle', 'customAccentColor'].includes(permission)) {
             throw new Error(`Permiso inválido: ${permission}`);
         }
 
-        // Guardar el permiso
         userLevel.customization.permissions[permission] = true;
 
-        // Guardar el color en active para RankCard
         if (hexColor && /^#([0-9A-F]{6})$/i.test(hexColor)) {
             userLevel.customization.active.accentColor = hexColor;
         }
@@ -347,21 +324,14 @@ shopItemSchema.methods.applyEffects = async function (userLevel, member) {
         return effects;
     }
 
-    // Solo para boosts
     if (this.type === 'boost_user' || this.type === 'boost_server') {
-        console.log('⚡ Es un boost, procesando...');
 
         if (!this.data) {
             console.log('⚠️ No hay data en el item');
             return effects;
         }
 
-        console.log('📊 Data del boost:', {
-            multiplier: this.data.multiplier,
-            duration: this.data.duration
-        });
 
-        // Crear objeto para pasar
         const boostItem = {
             _id: this._id,
             name: this.name,
@@ -369,13 +339,9 @@ shopItemSchema.methods.applyEffects = async function (userLevel, member) {
             data: this.data
         };
 
-        console.log('📤 Enviando a activateBoostFromItem:', boostItem);
 
         try {
-            // ¡¡¡ESTA ES LA LÍNEA CLAVE!!!
-            console.log('🔧 Llamando userLevel.activateBoostFromItem...');
             const multiplierResult = await userLevel.activateBoostFromItem(boostItem, 1);
-            console.log('✅ activateBoostFromItem retornó:', multiplierResult);
 
             effects.boost = {
                 multiplier: multiplierResult,
@@ -390,10 +356,8 @@ shopItemSchema.methods.applyEffects = async function (userLevel, member) {
             effects.error = error.message;
         }
     } else {
-        console.log('📦 No es un boost, ignorando...');
     }
 
-    console.log('📋 Efectos finales:', effects);
     return effects;
 };
 

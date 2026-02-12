@@ -95,7 +95,7 @@ const rewardSchema = new mongoose.Schema({
             default: 'none'
         },
         duration: {
-            type: Number, // en horas
+            type: Number,
             default: 0
         }
     }

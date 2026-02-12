@@ -1,4 +1,3 @@
-// Models/Event.js
 import mongoose from 'mongoose';
 
 const eventSchema = new mongoose.Schema({
@@ -98,7 +97,6 @@ const eventSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Índice compuesto para búsquedas eficientes
 eventSchema.index({ guildId: 1, eventId: 1 }, { unique: true });
 eventSchema.index({ guildId: 1, active: 1 });
 eventSchema.index({ endDate: 1 });

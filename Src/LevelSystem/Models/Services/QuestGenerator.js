@@ -1,4 +1,3 @@
-// Services/QuestGenerator.js
 class QuestGenerator {
     static generateDailyQuests(guildId, count = 3) {
         const questTemplates = [
@@ -25,7 +24,7 @@ class QuestGenerator {
                 difficulty: "medium",
                 objectives: [{
                     type: "join_voice",
-                    target: 1800 // 30 minutos en segundos
+                    target: 1800 
                 }],
                 rewards: {
                     xp: 500,
@@ -66,7 +65,6 @@ class QuestGenerator {
             }
         ];
         
-        // Seleccionar aleatoriamente
         const selected = [];
         const available = [...questTemplates];
         

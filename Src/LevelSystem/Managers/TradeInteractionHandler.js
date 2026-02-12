@@ -14,7 +14,6 @@ import {
 } from 'discord.js';
 import UserLevel from '../Models/UserLevel.js';
 
-/* ===================== UTIL ===================== */
 
 function extractTradeId(customId) {
   if (!customId) return null;
@@ -46,12 +45,10 @@ function getResourceName(type) {
   return type === 'coins' ? 'MONEDAS' : 'TOKENS';
 }
 
-/* ===================== MAIN ===================== */
 
 export default async function handleTradeInteraction(client, interaction) {
   client.activeTrades ??= new Map();
 
-  // 1️⃣ Solo botones / select / modales
   if (
     !interaction.isButton() &&
     !interaction.isStringSelectMenu() &&
@@ -60,16 +57,13 @@ export default async function handleTradeInteraction(client, interaction) {
     return false;
   }
 
-  // 2️⃣ Solo interacciones de trade
   if (!interaction.customId || !interaction.customId.startsWith('trade_')) {
     return false;
   }
 
-  // 3️⃣ Extraer tradeId
   const tradeId = extractTradeId(interaction.customId);
   if (!tradeId) return false;
 
-  // 4️⃣ Buscar trade
   const trade = client.activeTrades.get(tradeId);
 
   if (!trade) {
@@ -84,13 +78,12 @@ export default async function handleTradeInteraction(client, interaction) {
               )
             )
         ],
-        flags: MessageFlags.IsComponentsV2 | flags: 64
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
       });
     }
     return;
   }
 
-  // 5️⃣ Expiración
   if (Date.now() > trade.expiresAt && trade.status === 'pending') {
     trade.status = 'expired';
     client.activeTrades.set(tradeId, trade);
@@ -100,13 +93,12 @@ export default async function handleTradeInteraction(client, interaction) {
     if (!interaction.replied && !interaction.deferred) {
       await interaction.reply({
         content: '<:cancelar:1469343007554928641> | Este intercambio ha expirado.',
-        flags: 64
+        flags: MessageFlags.Ephemeral
       });
     }
     return;
   }
 
-  // 6️⃣ Routing
   if (interaction.customId.startsWith('trade_accept_')) {
     return handleAccept(client, interaction, trade);
   }
@@ -137,10 +129,8 @@ export default async function handleTradeInteraction(client, interaction) {
   return false;
 }
 
-/* ===================== HANDLERS ===================== */
-
 async function handleAccept(client, interaction, trade) {
-  await interaction.deferReply({ flags: 64 });
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
   if (interaction.user.id !== trade.targetId || trade.status !== 'pending') {
     return interaction.editReply({
@@ -206,14 +196,14 @@ async function handleSelectResource(client, interaction, trade) {
 }
 
 async function handleAmount(client, interaction, trade) {
-  await interaction.deferReply({ flags: 64 });
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
   const amount = parseInt(interaction.fields.getTextInputValue('amount'));
 
   if (!amount || amount <= 0) {
     return interaction.editReply({
       content: '<:cancelar:1469343007554928641> |  Cantidad inválida.',
-      flags: 64
+      flags: MessageFlags.Ephemeral
     });
   }
 
@@ -243,21 +233,19 @@ async function handleAmount(client, interaction, trade) {
 }
 
 async function handleConfirm(client, interaction, trade) {
-  await interaction.deferReply({ flags: 64 });
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-  // 🔐 Solo iniciador
   if (interaction.user.id !== trade.initiatorId) {
     return interaction.editReply({
       content: '<:cancelar:1469343007554928641> | No puedes confirmar este intercambio.',
-      flags: 64
+      flags: MessageFlags.Ephemeral
     });
   }
 
-  // 🧠 Estado válido
   if (trade.status !== 'offer_made') {
     return interaction.editReply({
       content: '<:cancelar:1469343007554928641> | Este intercambio ya no está disponible.',
-      flags: 64
+      flags: MessageFlags.Ephemeral
     });
   }
 
@@ -266,7 +254,6 @@ async function handleConfirm(client, interaction, trade) {
     UserLevel.findOne({ guildId: trade.guildId, userId: trade.targetId })
   ]);
 
-  // 💰 Fondos suficientes
   if (
     !init || !targ ||
     init[trade.initiatorOffer.type] < trade.initiatorOffer.amount ||
@@ -274,11 +261,10 @@ async function handleConfirm(client, interaction, trade) {
   ) {
     return interaction.editReply({
       content: '<:cancelar:1469343007554928641> | Uno de los usuarios ya no tiene recursos suficientes.',
-      flags: 64
+      flags: MessageFlags.Ephemeral
     });
   }
 
-  // 🔁 Transferencia
   init[trade.initiatorOffer.type] -= trade.initiatorOffer.amount;
   init[trade.targetOffer.type] += trade.targetOffer.amount;
 
@@ -287,7 +273,6 @@ async function handleConfirm(client, interaction, trade) {
 
   await Promise.all([init.save(), targ.save()]);
 
-  // ✅ Finalizar trade
   trade.status = 'completed';
   trade.completedAt = Date.now();
   client.activeTrades.set(trade.id, trade);
@@ -316,19 +301,18 @@ async function handleConfirm(client, interaction, trade) {
   });
 
 
-  // 🧹 Limpieza
   setTimeout(() => {
     client.activeTrades.delete(trade.id);
   }, 60_000);
 }
 
 async function handleDecline(client, interaction, trade) {
-  await interaction.deferReply({ flags: 64 });
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
   if (interaction.user.id !== trade.targetId || trade.status !== 'pending') {
     return interaction.editReply({
       content: '<:cancelar:1469343007554928641> | No puedes rechazar este intercambio.',
-      flags: 64
+      flags: MessageFlags.Ephemeral
     });
   }
 
@@ -345,12 +329,12 @@ async function handleDecline(client, interaction, trade) {
 }
 
 async function handleCancel(client, interaction, trade) {
-  await interaction.deferReply({ flags: 64 });
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
   if (interaction.user.id !== trade.initiatorId || trade.status !== 'offer_made') {
     return interaction.editReply({
       content: '❌ No puedes cancelar este intercambio.',
-      flags: 64
+      flags: MessageFlags.Ephemeral
     });
   }
 
@@ -364,12 +348,11 @@ async function handleCancel(client, interaction, trade) {
 
   await interaction.editReply({
     content: '<:cancelar:1469343007554928641> | Has cancelado la confirmación. El intercambio vuelve a estar pendiente.',
-    flags: 64
+    flags: MessageFlags.Ephemeral
   });
 }
 
 
-/* ===================== UPDATE MSG ===================== */
 
 async function updateTradeMessage(client, trade) {
   const channel = client.channels.cache.get(trade.channelId);

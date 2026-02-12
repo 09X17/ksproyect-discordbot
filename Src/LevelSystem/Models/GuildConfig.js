@@ -308,11 +308,11 @@ const guildConfigSchema = new mongoose.Schema({
             endDate: Date,
             active: Boolean,
             schedule: {
-                days: [Number], // 0=Domingo, 1=Lunes, etc.
+                days: [Number], 
                 startHour: Number,
                 endHour: Number,
                 months: [Number],
-                specificDates: [String] // Formato "MM-DD"
+                specificDates: [String] 
             }
         }]
     },
@@ -358,7 +358,6 @@ const guildConfigSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Método para reemplazar variables
 guildConfigSchema.methods.formatMessage = function (message, data) {
     if (!message) return '';
 
@@ -393,7 +392,6 @@ guildConfigSchema.methods.formatMessage = function (message, data) {
     return formatted;
 };
 
-// Método para crear embed
 guildConfigSchema.methods.createLevelUpEmbed = function (data) {
     return {
         title: this.formatMessage(this.notifications.levelUpEmbed.title, data),
@@ -416,7 +414,6 @@ guildConfigSchema.methods.createLevelUpEmbed = function (data) {
 
 guildConfigSchema.index({ enabled: 1 });
 
-// Métodos de utilidad
 guildConfigSchema.methods.getChannelMultiplier = function (channelId) {
     const channelMultiplier = this.multipliers.specialChannels.find(c => c.channelId === channelId);
     if (channelMultiplier) return channelMultiplier.multiplier;
@@ -430,14 +427,12 @@ guildConfigSchema.methods.getChannelMultiplier = function (channelId) {
 guildConfigSchema.methods.getUserMultiplier = function (member) {
     let multiplier = 1.0;
 
-    // Multiplicadores por rol
     for (const boostRole of this.multipliers.boostRoles) {
         if (member.roles.cache.has(boostRole.roleId)) {
             multiplier *= boostRole.multiplier;
         }
     }
 
-    // Reducciones por penalización
     for (const penaltyRole of this.penalties.xpReductionRoles) {
         if (member.roles.cache.has(penaltyRole.roleId)) {
             multiplier *= penaltyRole.multiplier;
@@ -465,7 +460,6 @@ guildConfigSchema.methods.canEarnXP = function (member, channelId) {
     return true;
 };
 
-// Métodos para gestión de configuraciones
 guildConfigSchema.methods.addChannelMultiplier = function (channelId, multiplier) {
     const existing = this.multipliers.specialChannels.find(c => c.channelId === channelId);
 
@@ -551,7 +545,6 @@ guildConfigSchema.methods.toggleDMNotifications = function () {
     return this.save();
 };
 
-// Métodos para gestión de multiplicadores de canal
 guildConfigSchema.methods.addChannelMultiplier = function (channelId, multiplier) {
     const existing = this.multipliers.specialChannels.find(c => c.channelId === channelId);
 
@@ -572,7 +565,6 @@ guildConfigSchema.methods.removeChannelMultiplier = function (channelId) {
     return this.save();
 };
 
-// Métodos para gestión de multiplicadores de rol
 guildConfigSchema.methods.addBoostRole = function (roleId, multiplier) {
     const existing = this.multipliers.boostRoles.find(r => r.roleId === roleId);
 
@@ -593,7 +585,6 @@ guildConfigSchema.methods.removeBoostRole = function (roleId) {
     return this.save();
 };
 
-// Métodos para gestión de penalizaciones
 guildConfigSchema.methods.addPenaltyRole = function (roleId, multiplier) {
     const existing = this.penalties.xpReductionRoles.find(r => r.roleId === roleId);
 
@@ -670,13 +661,10 @@ guildConfigSchema.methods.depositToVault = async function ({
         throw new Error('Monedas insuficientes');
     }
 
-    // 1️⃣ Debitar usuario
     userLevel.coins -= amount;
 
-    // 2️⃣ Acreditar bóveda
     this.vault.balance += amount;
 
-    // 3️⃣ Actualizar meta activa (si existe)
     const activeGoal = this.vault.goals.find(g => !g.completed);
     if (activeGoal) {
         activeGoal.currentAmount += amount;
@@ -686,7 +674,6 @@ guildConfigSchema.methods.depositToVault = async function ({
         }
     }
 
-    // 4️⃣ Registrar transacción
     this.vault.transactions.push({
         userId: userLevel.userId,
         username: userLevel.username,

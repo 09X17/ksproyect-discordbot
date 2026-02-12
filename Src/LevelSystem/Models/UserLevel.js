@@ -145,8 +145,6 @@ const userLevelSchema = new mongoose.Schema({
             type: Number,
             default: 0
         },
-
-        // 🚔 CÁRCEL
         jailed: {
             type: Boolean,
             default: false
@@ -155,20 +153,14 @@ const userLevelSchema = new mongoose.Schema({
             type: Date,
             default: null
         },
-
-        // ⛔ BAN (soft)
         bannedUntil: {
             type: Date,
             default: null
         },
-
-        // 🦹 EVENTOS NEGATIVOS
         lastRobbedAt: {
             type: Date,
             default: null
         },
-
-        // 📊 STATS
         stats: {
             purchases: { type: Number, default: 0 },
             bets: { type: Number, default: 0 },
@@ -539,13 +531,6 @@ userLevelSchema.methods.purchaseItem = async function (item, quantity = 1) {
     const now = new Date();
     let totalPrice = item.price * quantity;
 
-    console.log('💰 purchaseItem llamado:', {
-        itemName: item.name,
-        itemType: item.type,
-        quantity,
-        price: totalPrice
-    });
-
     if (item.currency === 'coins') {
         if (this.coins < totalPrice) throw new Error('Monedas insuficientes');
         this._spendCoinsInternal(totalPrice, `Compra: ${item.name} x${quantity}`, 'shop');
@@ -569,7 +554,6 @@ userLevelSchema.methods.purchaseItem = async function (item, quantity = 1) {
         purchasedAt: now
     });
 
-    console.log('✅ Compra registrada en purchaseHistory');
     let effects = {};
 
     try {
@@ -579,8 +563,6 @@ userLevelSchema.methods.purchaseItem = async function (item, quantity = 1) {
         }
 
         else if (item.type === 'permission') {
-            console.log('🔐 Procesando permiso...');
-            console.log('   Item data:', item.data);
 
             const permission = item.data?.permission;
             const hexColor = item.data?.hexColor;
@@ -589,13 +571,9 @@ userLevelSchema.methods.purchaseItem = async function (item, quantity = 1) {
             this.customization.permissions ??= {};
             this.customization.active ??= {};
 
-            console.log('   Permission key:', permission);
-            console.log('   Hex color:', hexColor);
-
             if (permission) {
                 this.customization.permissions[permission] = true;
                 effects.permissionGranted = permission;
-                console.log(`   ✅ Permiso "${permission}" activado`);
 
                 this.markModified('customization.permissions');
             }
@@ -603,7 +581,6 @@ userLevelSchema.methods.purchaseItem = async function (item, quantity = 1) {
             if (hexColor && /^#([0-9A-F]{6})$/i.test(hexColor)) {
                 this.customization.active.accentColor = hexColor;
                 effects.accentColorApplied = hexColor;
-                console.log(`   🎨 Color "${hexColor}" aplicado`);
 
                 this.markModified('customization.active');
             }
@@ -612,7 +589,6 @@ userLevelSchema.methods.purchaseItem = async function (item, quantity = 1) {
         }
 
         else {
-            console.log(`📦 Procesando tipo "${item.type}"...`);
             effects = await this.applyItemEffects(item, quantity);
         }
 
@@ -621,20 +597,14 @@ userLevelSchema.methods.purchaseItem = async function (item, quantity = 1) {
         throw new Error(`Error aplicando efectos del item: ${err.message}`);
     }
 
-    // ═══════════════════════════════════════════════════════
-    // 4. GUARDAR EN INVENTARIO (SOLO ITEMS CONSUMIBLES)
-    // ═══════════════════════════════════════════════════════
-    // Los permisos NO se guardan en inventario (son permanentes)
     const shouldAddToInventory = !['permission', 'role'].includes(item.type);
 
     if (shouldAddToInventory) {
-        console.log('📦 Añadiendo al inventario...');
         this.inventory ??= [];
         const existing = this.inventory.find(i => i.itemId?.toString() === item._id.toString());
 
         if (existing) {
             existing.quantity += quantity;
-            console.log(`   Cantidad actualizada: ${existing.quantity}`);
         } else {
             this.inventory.push({
                 itemId: item._id,
@@ -642,20 +612,11 @@ userLevelSchema.methods.purchaseItem = async function (item, quantity = 1) {
                 quantity,
                 acquiredAt: now
             });
-            console.log('   Item nuevo añadido');
         }
     } else {
-        console.log('⏭️  Item de tipo permiso/role, no se guarda en inventario');
     }
 
-    // ═══════════════════════════════════════════════════════
-    // 5. GUARDAR TODOS LOS CAMBIOS
-    // ═══════════════════════════════════════════════════════
-    console.log('💾 Guardando cambios en DB...');
     await this.save();
-    console.log('✅ Guardado exitoso');
-
-    console.log('📊 Efectos aplicados:', effects);
 
     return {
         success: true,
@@ -807,7 +768,6 @@ userLevelSchema.methods.getActiveBackground = function () {
 };
 
 userLevelSchema.methods.addItemToInventory = async function (item, quantity = 1) {
-    console.log(`📦 [INVENTARIO] Añadiendo item: ${item.name}, cantidad: ${quantity}`);
 
     this.inventory ??= [];
 
@@ -821,7 +781,6 @@ userLevelSchema.methods.addItemToInventory = async function (item, quantity = 1)
     if (existingIndex !== -1) {
         this.inventory[existingIndex].quantity += quantity;
         this.inventory[existingIndex].acquiredAt = new Date();
-        console.log(`📦 [INVENTARIO] Cantidad actualizada: ${this.inventory[existingIndex].quantity}`);
     } else {
         this.inventory.push({
             itemId: item._id || null,
@@ -830,10 +789,8 @@ userLevelSchema.methods.addItemToInventory = async function (item, quantity = 1)
             quantity,
             acquiredAt: new Date()
         });
-        console.log(`📦 [INVENTARIO] Item nuevo añadido: ${item.name}`);
     }
 
-    // ✅ MARCAR Y GUARDAR
     this.markModified('inventory');
     await this.save();
 
@@ -890,15 +847,12 @@ userLevelSchema.methods.openLootBox = async function (boxType, levelManager = nu
         if (box.quantity > 1) {
             box.quantity--;
         } else {
-            // 🔹 Reemplazar splice por filter para asegurar que Mongoose lo vea
             this.inventory = this.inventory.filter((_, i) => i !== index);
         }
 
-        this.markModified('inventory'); // marca el array como modificado
-       // this.save()
+        this.markModified('inventory');
     }
 
-    // 🎁 Seleccionar recompensa
     const rewards = {};
     const totalWeight = boxData.rewards.reduce((s, r) => s + r.weight, 0);
     let roll = Math.random() * totalWeight;
@@ -914,7 +868,6 @@ userLevelSchema.methods.openLootBox = async function (boxType, levelManager = nu
 
     if (!selectedReward) selectedReward = boxData.rewards[0];
 
-    // ➡️ Solo calcular la recompensa, NO aplicarla
     switch (selectedReward.type) {
         case 'coins': {
             const amount = getRandomInRange(selectedReward.min, selectedReward.max);
@@ -950,7 +903,6 @@ userLevelSchema.methods.openLootBox = async function (boxType, levelManager = nu
         }
     }
 
-    // Guardar cambios en inventario si los hubo
     await this.save();
 
     return {
@@ -1012,7 +964,7 @@ userLevelSchema.methods.joinJob = function (jobId, { setActive = true } = {}) {
         throw new Error('Ya estás en este trabajo');
     }
 
-    const jobConfig = JobsConfig[jobId]; // Asegúrate de importar JobsConfig aquí
+    const jobConfig = JobsConfig[jobId];
     if (!jobConfig) throw new Error('Trabajo no existente');
 
     const initialRank = jobConfig.ranks?.[0]?.name || 'Novato';
@@ -1031,7 +983,7 @@ userLevelSchema.methods.joinJob = function (jobId, { setActive = true } = {}) {
             xpEarned: 0,
             fails: 0
         },
-        perks: [], // Podrías inicializar perks desbloqueables si quieres
+        perks: [], 
         isIllegal: jobConfig.illegal || false,
         joinedAt: new Date()
     });
@@ -1091,7 +1043,7 @@ userLevelSchema.methods.workJob = async function () {
     if (job.cooldownUntil && job.cooldownUntil > now) {
         return {
             success: false,
-            reason: `<:relojdearena:1457064155067449364> Ya trabajaste recientemente. Tiempo restante: <t:${Math.floor(job.cooldownUntil.getTime() / 1000)}:R>`,
+            reason: `Ya trabajaste recientemente. Tiempo restante: <t:${Math.floor(job.cooldownUntil.getTime() / 1000)}:R>`,
             cooldownEndsAt: job.cooldownUntil
         };
     }

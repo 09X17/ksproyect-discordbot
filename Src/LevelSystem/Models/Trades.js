@@ -73,12 +73,10 @@ const tradeHistorySchema = new Schema({
   timestamps: true
 });
 
-// Índice compuesto para búsquedas eficientes
 tradeHistorySchema.index({ guildId: 1, createdAt: -1 });
 tradeHistorySchema.index({ initiatorId: 1, createdAt: -1 });
 tradeHistorySchema.index({ targetId: 1, createdAt: -1 });
 
-// Método estático para obtener historial de un usuario
 tradeHistorySchema.statics.getUserHistory = async function(guildId, userId, limit = 10) {
   return this.find({
     guildId,
@@ -91,7 +89,6 @@ tradeHistorySchema.statics.getUserHistory = async function(guildId, userId, limi
   .limit(limit);
 };
 
-// Método estático para obtener estadísticas
 tradeHistorySchema.statics.getUserStats = async function(guildId, userId) {
   const trades = await this.find({
     guildId,
@@ -110,7 +107,6 @@ tradeHistorySchema.statics.getUserStats = async function(guildId, userId) {
   };
 };
 
-// Método para verificar cooldown entre usuarios
 tradeHistorySchema.statics.checkCooldown = async function(guildId, user1Id, user2Id, cooldownMinutes = 5) {
   const cooldownTime = Date.now() - (cooldownMinutes * 60 * 1000);
   

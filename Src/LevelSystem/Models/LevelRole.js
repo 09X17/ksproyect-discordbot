@@ -125,38 +125,31 @@ const levelRoleSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Índices
 levelRoleSchema.index({ guildId: 1, level: 1 }, { unique: true });
 levelRoleSchema.index({ guildId: 1, roleId: 1 }, { unique: true });
 levelRoleSchema.index({ guildId: 1, price: 1 });
 
-// Métodos
 levelRoleSchema.methods.canUserBuy = async function(userLevel, member) {
-    // Verificar nivel mínimo
     if (this.requirements.minLevel > 0 && userLevel.level < this.requirements.minLevel) {
         return { canBuy: false, reason: `Requiere nivel ${this.requirements.minLevel} o superior` };
     }
-    
-    // Verificar nivel máximo
+   
     if (this.requirements.maxLevel && userLevel.level > this.requirements.maxLevel) {
         return { canBuy: false, reason: `Requiere nivel ${this.requirements.maxLevel} o inferior` };
     }
     
-    // Verificar roles requeridos
     for (const roleId of this.requirements.requiredRoles) {
         if (!member.roles.cache.has(roleId)) {
             return { canBuy: false, reason: 'No tienes los roles requeridos' };
         }
     }
     
-    // Verificar roles excluidos
     for (const roleId of this.requirements.excludedRoles) {
         if (member.roles.cache.has(roleId)) {
             return { canBuy: false, reason: 'Tienes roles excluidos' };
         }
     }
     
-    // Verificar límite de usuarios
     if (this.limitations.maxUsers && this.stats.activeUsers >= this.limitations.maxUsers) {
         return { canBuy: false, reason: 'Este rol ha alcanzado el límite máximo de usuarios' };
     }
@@ -170,7 +163,6 @@ levelRoleSchema.methods.applyEffects = function(userLevel) {
     }
     
     if (this.effects.currencyBonus > 0) {
-        // Aquí se agregaría la lógica para bonificación de monedas
     }
     
     return userLevel;

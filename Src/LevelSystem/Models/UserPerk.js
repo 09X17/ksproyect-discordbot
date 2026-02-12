@@ -126,13 +126,11 @@ const userPerkSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Índices
 userPerkSchema.index({ userId: 1, guildId: 1, perkId: 1 }, { unique: true });
 userPerkSchema.index({ guildId: 1, type: 1 });
 userPerkSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 userPerkSchema.index({ 'metadata.rarity': 1 });
 
-// Métodos
 userPerkSchema.methods.canActivate = function() {
     if (!this.active) return false;
     
@@ -166,7 +164,6 @@ userPerkSchema.methods.activate = async function(userLevel) {
     this.stats.activations++;
     this.stats.lastActivated = new Date();
     
-    // Aplicar efectos al userLevel
     if (this.effects.xpMultiplier !== 1.0) {
         userLevel.boostMultiplier *= this.effects.xpMultiplier;
     }
@@ -176,7 +173,6 @@ userPerkSchema.methods.activate = async function(userLevel) {
         this.stats.totalXPGained += this.effects.xpFlatBonus;
     }
     
-    // Configurar expiración si tiene duración
     if (this.limitations.duration > 0 && !this.expiresAt) {
         const expires = new Date();
         expires.setHours(expires.getHours() + this.limitations.duration);

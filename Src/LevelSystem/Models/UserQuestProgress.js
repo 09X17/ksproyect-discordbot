@@ -1,4 +1,3 @@
-// Models/UserQuestProgress.js
 import mongoose from 'mongoose';
 
 const userQuestProgressSchema = new mongoose.Schema({
@@ -24,7 +23,7 @@ const userQuestProgressSchema = new mongoose.Schema({
     },
     progress: {
         type: Map,
-        of: Number, // { objectiveId: currentValue }
+        of: Number, 
         default: new Map()
     },
     startedAt: {
@@ -33,7 +32,7 @@ const userQuestProgressSchema = new mongoose.Schema({
     },
     completedAt: Date,
     claimedAt: Date,
-    timeSpent: Number, // en segundos
+    timeSpent: Number,
     streakBonus: {
         type: Number,
         default: 0
@@ -50,12 +49,11 @@ const userQuestProgressSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Índices compuestos
+
 userQuestProgressSchema.index({ userId: 1, guildId: 1, questId: 1 }, { unique: true });
 userQuestProgressSchema.index({ guildId: 1, status: 1 });
 userQuestProgressSchema.index({ completedAt: 1 });
 
-// Métodos
 userQuestProgressSchema.methods.updateProgress = function(objectiveId, amount = 1) {
     const current = this.progress.get(objectiveId) || 0;
     this.progress.set(objectiveId, current + amount);
@@ -77,7 +75,6 @@ userQuestProgressSchema.methods.claimRewards = async function() {
     this.status = 'claimed';
     this.claimedAt = new Date();
     
-    // Obtener la quest
     const DailyQuest = mongoose.model('DailyQuest');
     const quest = await DailyQuest.findById(this.questId);
     
@@ -85,7 +82,6 @@ userQuestProgressSchema.methods.claimRewards = async function() {
         throw new Error('Quest no encontrada');
     }
     
-    // Calcular recompensas con multiplicadores
     const baseRewards = quest.rewards;
     const finalRewards = {
         xp: Math.floor(baseRewards.xp * this.multiplier) + this.streakBonus,

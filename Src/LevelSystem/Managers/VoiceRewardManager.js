@@ -1,5 +1,4 @@
 import UserLevel from '../Models/UserLevel.js';
-import GuildConfig from '../Models/GuildConfig.js';
 
 export default class VoiceRewardManager {
     constructor(client, levelManager) {
@@ -8,7 +7,6 @@ export default class VoiceRewardManager {
         this.activeVoiceSessions = new Map();
         this.voiceLogger = {
             sessionRestored: (member, channel) => {
-              // this(`🔊 Sesión restaurada: ${member.user.tag} en ${channel.name}`);
             }
         };
     }
