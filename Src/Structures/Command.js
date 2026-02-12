@@ -18,13 +18,10 @@ export default class Command {
             disabled: options.disabled || false
         };
     }
-
-    // Método principal (debe ser sobrescrito)
     async execute(client, message, args) {
         throw new Error('Método execute() no implementado');
     }
 
-    // Validaciones
     validate(client, message) {
         if (this.settings.disabled) {
             return { error: 'Este comando está deshabilitado' };
@@ -46,7 +43,6 @@ export default class Command {
             return { error: 'Este comando solo funciona en canales NSFW' };
         }
 
-        // Validar permisos del usuario
         if (this.permissions.user.length > 0 && message.member) {
             const missing = this.permissions.user.filter(perm => 
                 !message.member.permissions.has(perm)
@@ -56,7 +52,6 @@ export default class Command {
             }
         }
 
-        // Validar permisos del bot
         if (this.permissions.bot.length > 0 && message.guild) {
             const missing = this.permissions.bot.filter(perm => 
                 !message.guild.members.me.permissions.has(perm)
@@ -69,7 +64,6 @@ export default class Command {
         return { success: true };
     }
 
-    // Cooldown system
     setCooldown(client, userId) {
         const key = `${userId}-${this.name}`;
         const cooldownTime = this.cooldown * 1000;

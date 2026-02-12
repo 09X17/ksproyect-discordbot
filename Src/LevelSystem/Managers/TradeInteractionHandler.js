@@ -84,7 +84,7 @@ export default async function handleTradeInteraction(client, interaction) {
               )
             )
         ],
-        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+        flags: MessageFlags.IsComponentsV2 | flags: 64
       });
     }
     return;
@@ -100,7 +100,7 @@ export default async function handleTradeInteraction(client, interaction) {
     if (!interaction.replied && !interaction.deferred) {
       await interaction.reply({
         content: '<:cancelar:1469343007554928641> | Este intercambio ha expirado.',
-        flags: MessageFlags.Ephemeral
+        flags: 64
       });
     }
     return;
@@ -140,7 +140,7 @@ export default async function handleTradeInteraction(client, interaction) {
 /* ===================== HANDLERS ===================== */
 
 async function handleAccept(client, interaction, trade) {
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  await interaction.deferReply({ flags: 64 });
 
   if (interaction.user.id !== trade.targetId || trade.status !== 'pending') {
     return interaction.editReply({
@@ -206,14 +206,14 @@ async function handleSelectResource(client, interaction, trade) {
 }
 
 async function handleAmount(client, interaction, trade) {
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  await interaction.deferReply({ flags: 64 });
 
   const amount = parseInt(interaction.fields.getTextInputValue('amount'));
 
   if (!amount || amount <= 0) {
     return interaction.editReply({
       content: '<:cancelar:1469343007554928641> |  Cantidad inválida.',
-      flags: MessageFlags.Ephemeral
+      flags: 64
     });
   }
 
@@ -243,13 +243,13 @@ async function handleAmount(client, interaction, trade) {
 }
 
 async function handleConfirm(client, interaction, trade) {
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  await interaction.deferReply({ flags: 64 });
 
   // 🔐 Solo iniciador
   if (interaction.user.id !== trade.initiatorId) {
     return interaction.editReply({
       content: '<:cancelar:1469343007554928641> | No puedes confirmar este intercambio.',
-      flags: MessageFlags.Ephemeral
+      flags: 64
     });
   }
 
@@ -257,7 +257,7 @@ async function handleConfirm(client, interaction, trade) {
   if (trade.status !== 'offer_made') {
     return interaction.editReply({
       content: '<:cancelar:1469343007554928641> | Este intercambio ya no está disponible.',
-      flags: MessageFlags.Ephemeral
+      flags: 64
     });
   }
 
@@ -274,7 +274,7 @@ async function handleConfirm(client, interaction, trade) {
   ) {
     return interaction.editReply({
       content: '<:cancelar:1469343007554928641> | Uno de los usuarios ya no tiene recursos suficientes.',
-      flags: MessageFlags.Ephemeral
+      flags: 64
     });
   }
 
@@ -323,12 +323,12 @@ async function handleConfirm(client, interaction, trade) {
 }
 
 async function handleDecline(client, interaction, trade) {
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  await interaction.deferReply({ flags: 64 });
 
   if (interaction.user.id !== trade.targetId || trade.status !== 'pending') {
     return interaction.editReply({
       content: '<:cancelar:1469343007554928641> | No puedes rechazar este intercambio.',
-      flags: MessageFlags.Ephemeral
+      flags: 64
     });
   }
 
@@ -345,12 +345,12 @@ async function handleDecline(client, interaction, trade) {
 }
 
 async function handleCancel(client, interaction, trade) {
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  await interaction.deferReply({ flags: 64 });
 
   if (interaction.user.id !== trade.initiatorId || trade.status !== 'offer_made') {
     return interaction.editReply({
       content: '❌ No puedes cancelar este intercambio.',
-      flags: MessageFlags.Ephemeral
+      flags: 64
     });
   }
 
@@ -364,7 +364,7 @@ async function handleCancel(client, interaction, trade) {
 
   await interaction.editReply({
     content: '<:cancelar:1469343007554928641> | Has cancelado la confirmación. El intercambio vuelve a estar pendiente.',
-    flags: MessageFlags.Ephemeral
+    flags: 64
   });
 }
 

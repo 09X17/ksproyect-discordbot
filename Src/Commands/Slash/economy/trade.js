@@ -69,7 +69,7 @@ export default class TradeCommand extends SlashCommand {
                                 )
                             )
                     ],
-                    flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+                    flags: MessageFlags.IsComponentsV2 | flags: 64
                 });
             }
 
@@ -92,14 +92,14 @@ export default class TradeCommand extends SlashCommand {
                                 )
                             )
                     ],
-                    flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+                    flags: MessageFlags.IsComponentsV2 | flags: 64
                 });
             }
         }
     }
 
     async createQuickTrade(client, interaction, targetUser, resourceType, amount) {
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        await interaction.deferReply({ flags: 64 });
 
         const userLevel = await client.levelManager.getOrCreateUserLevel(
             interaction.guild.id,
@@ -117,7 +117,7 @@ export default class TradeCommand extends SlashCommand {
                             )
                         )
                 ],
-                flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+                flags: MessageFlags.IsComponentsV2 | flags: 64
             });
         }
 
@@ -174,7 +174,7 @@ export default class TradeCommand extends SlashCommand {
 
         await interaction.reply({
             components: [container],
-            flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+            flags: MessageFlags.IsComponentsV2 | flags: 64
         });
     }
 
@@ -248,7 +248,7 @@ export default class TradeCommand extends SlashCommand {
                         )
                     )
             ],
-            flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+            flags: MessageFlags.IsComponentsV2 | flags: 64
         });
     }
 

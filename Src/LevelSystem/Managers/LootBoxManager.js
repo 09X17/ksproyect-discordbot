@@ -470,7 +470,7 @@ export default class LootBoxManager {
 
     async spawnBoxCommand(interaction, boxType = null) {
         if (!interaction.member.permissions.has('ADMINISTRATOR')) {
-            return interaction.reply({ content: '❌ Solo administradores pueden usar este comando.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: '❌ Solo administradores pueden usar este comando.', flags: 64 });
         }
 
         const type = boxType || this.determineBoxType();
@@ -478,7 +478,7 @@ export default class LootBoxManager {
 
         return interaction.reply({
             content: `✅ Caja **${this.boxTypes[type].name}** aparecida manualmente.`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
     }
 

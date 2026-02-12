@@ -292,7 +292,7 @@ async function handleEmbedModal(client, interaction) {
         if (!embedManager) {
             return interaction.reply({
                 content: '❌ El sistema de embeds no está disponible.',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
 
@@ -302,7 +302,7 @@ async function handleEmbedModal(client, interaction) {
         client.logger.error('Error en handleEmbedModal:', error);
         await interaction.reply({
             content: '❌ Error procesando el formulario.',
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
     }
 }
@@ -315,7 +315,7 @@ async function handleSlashCommand(client, interaction) {
     if (!command) {
         return interaction.reply({
             content: '❌ Comando no disponible.',
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
     }
 
@@ -412,7 +412,7 @@ function handleInteractionError(interaction, error) {
 
     const payload = {
         content: '❌ Ocurrió un error al procesar la interacción.',
-        flags: MessageFlags.Ephemeral
+        flags: 64
     };
 
     if (interaction.replied || interaction.deferred) {

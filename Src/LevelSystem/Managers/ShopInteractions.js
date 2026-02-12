@@ -85,7 +85,7 @@ export default async function handleShopInteraction(client, interaction) {
         if (!interaction.replied && !interaction.deferred) {
             await interaction.reply({
                 content: '<:rechazado:1453073959842091008> Ocurrió un error en la tienda.',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             }).catch(() => { });
         }
 

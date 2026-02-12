@@ -41,7 +41,7 @@ export default class LevelAdminCommand extends SlashCommand {
             console.error('Error en levels-admin:', error);
             return interaction.reply({
                 content: '❌ Ocurrió un error al procesar el comando.',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
     }
@@ -60,7 +60,7 @@ export default class LevelAdminCommand extends SlashCommand {
                 '🛠️ **Panel avanzado del sistema de niveles**\n\n' +
                 `Estado: **${config.enabled ? '🟢 ACTIVO' : '🔴 INACTIVO'}**`,
             components: buildSinglePanel(config),
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
     }
 

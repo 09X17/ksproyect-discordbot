@@ -71,10 +71,6 @@ export default class KClient extends Client {
         this.validateConfig();
     }
 
-    /* ================================================= */
-    /* CONFIG VALIDATION */
-    /* ================================================= */
-
     validateConfig() {
         if (!this.config.token) {
             throw new Error('❌ DISCORD_TOKEN is not configured.');
@@ -94,10 +90,6 @@ export default class KClient extends Client {
             throw new Error(`Missing environment variables: ${missing.join(', ')}`);
         }
     }
-
-    /* ================================================= */
-    /* INITIALIZATION */
-    /* ================================================= */
 
     async initialize() {
         try {
@@ -126,10 +118,6 @@ export default class KClient extends Client {
         }
     }
 
-    /* ================================================= */
-    /* DATABASE */
-    /* ================================================= */
-
     async loadDatabase() {
         try {
             const { default: databaseHandler } = await import('../Handlers/databaseHandler.js');
@@ -151,9 +139,6 @@ export default class KClient extends Client {
         }
     }
 
-    /* ================================================= */
-    /* HANDLERS */
-    /* ================================================= */
 
     async loadHandlers() {
         const handlers = [
@@ -179,16 +164,12 @@ export default class KClient extends Client {
                     this.logger.error(`❌ Error loading ${handler.name}Handler:`, error);
 
                     if (handler.priority <= 3) {
-                        throw error; // Critical handlers stop startup
+                        throw error; 
                     }
                 }
             }
         }
     }
-
-    /* ================================================= */
-    /* ACTIVITY ROTATION */
-    /* ================================================= */
 
     setupActivityRotation() {
         if (!this.user || !this.activities.length) return;
@@ -209,9 +190,6 @@ export default class KClient extends Client {
         this.activityIndex = (this.activityIndex + 1) % this.activities.length;
     }
 
-    /* ================================================= */
-    /* SHUTDOWN */
-    /* ================================================= */
 
     async emergencyShutdown(reason = 'unknown') {
         this.logger.error(`🚨 Emergency shutdown triggered: ${reason}`);
@@ -258,9 +236,6 @@ export default class KClient extends Client {
         }
     }
 
-    /* ================================================= */
-    /* HEALTH MONITORING */
-    /* ================================================= */
 
     getSystemHealth() {
         const reviewHealth = this.reviewManager?.getHealth?.() || { status: 'offline' };
@@ -314,11 +289,7 @@ export default class KClient extends Client {
             }
         };
     }
-
-    /* ================================================= */
-    /* PERMISSIONS & UTILITIES */
-    /* ================================================= */
-
+    
     isOwner(userId) {
         return this.config.owners?.includes(userId) || false;
     }

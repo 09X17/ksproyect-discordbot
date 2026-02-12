@@ -30,7 +30,7 @@ export default class TestTradeCommand extends SlashCommand {
             if (interaction.user.id !== '458083324842213376') {
                 return interaction.reply({
                     content: '❌ Solo el desarrollador puede usar este comando.',
-                    flags: MessageFlags.Ephemeral
+                    flags: 64
                 });
             }
             
@@ -110,14 +110,14 @@ export default class TestTradeCommand extends SlashCommand {
                 content: '✅ **MODO PRUEBA ACTIVADO**\n\nPuedes probar todos los botones del trade. Recuerda que esto es solo una simulación y no afectará tus recursos reales.',
                 embeds: [embed],
                 components: [tradeRow],
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             
         } catch (error) {
             console.error('Error en test-trade:', error);
             return interaction.reply({
                 content: '❌ Error en la prueba.',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
     }

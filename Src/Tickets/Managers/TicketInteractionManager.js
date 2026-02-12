@@ -5,7 +5,6 @@ export default class TicketInteractionManager {
         this.client = client;
     }
 
-    // Método principal para manejar interacciones de tickets
     async handleTicketInteraction(interaction) {
         const { customId, user, channel, guild } = interaction;
         if (!customId) return false;
@@ -17,15 +16,11 @@ export default class TicketInteractionManager {
                 return true;
             }
 
-            // 👇 Manejar menús open_ticket con panelId (CORREGIDO)
             if (customId.startsWith("open_ticket_")) {
-                await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+                await interaction.deferReply({ flags: 64 });
 
-                // Extraer panelId del customId (CORREGIDO)
                 const panelId = customId.replace("open_ticket_", "");
-                const selected = interaction.values[0]; // categoría elegida
-
-                // ✅ DEBUG: Verificar que estamos recibiendo los datos correctos
+                const selected = interaction.values[0]; 
                 this.client.logger.debug(`Creando ticket: panelId=${panelId}, category=${selected}, user=${user.tag}`);
 
                 const result = await this.client.ticketManager.createTicket(
@@ -33,7 +28,7 @@ export default class TicketInteractionManager {
                     user,
                     `Ticket creado en la categoría: ${selected}`,
                     selected,
-                    panelId // ← ¡Pasar el panelId!
+                    panelId 
                 );
 
                 if (result.success) {
@@ -46,12 +41,12 @@ export default class TicketInteractionManager {
                     });
                 }
 
-                return true; // interacción manejada
+                return true; 
             }
 
             // 👇 Manejar el viejo formato (para backwards compatibility)
             if (customId === "open_ticket") {
-                await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+                await interaction.deferReply({ flags: 64 });
 
                 const selected = interaction.values[0]; // categoría elegida
 
@@ -93,17 +88,17 @@ export default class TicketInteractionManager {
 
             switch (customId) {
                 case "close_ticket":
-                    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+                    await interaction.deferReply({ flags: 64 });
                     await this.handleCloseButton(interaction);
                     break;
 
                 case "claim_ticket":
-                    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+                    await interaction.deferReply({ flags: 64 });
                     await this.handleClaimTicket(interaction);
                     break;
 
                 case "transcript_ticket":
-                    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+                    await interaction.deferReply({ flags: 64 });
                     await this.handleTranscriptTicket(interaction);
                     break;
 
@@ -112,15 +107,15 @@ export default class TicketInteractionManager {
                     break;
 
                 case "cancel_close":
-                    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+                    await interaction.deferReply({ flags: 64 });
                     await this.handleCancelClose(interaction);
                     break;
 
                 default:
-                    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+                    await interaction.deferReply({ flags: 64 });
                     await interaction.editReply({
                         content: "❌ Acción de ticket no reconocida",
-                        flags: MessageFlags.Ephemeral
+                        flags: 64
                     });
             }
 
@@ -129,18 +124,15 @@ export default class TicketInteractionManager {
             return true;
         } catch (error) {
             this.client.logger.error("Error en handleTicketInteraction:", error);
-
-            // ✅ Mejor manejo de errores
             try {
                 if (interaction.replied || interaction.deferred) {
                     await interaction.editReply({
                         content: "❌ Error al procesar la solicitud. Contacta con un administrador.",
-                        flags: MessageFlags.Ephemeral
+                        flags: 64
                     });
                 } else {
                     await interaction.reply({
                         content: "❌ Error al procesar la solicitud. Contacta con un administrador.",
-                        flags: MessageFlags.Ephemeral,
                         flags: 64
                     });
                 }
@@ -152,8 +144,6 @@ export default class TicketInteractionManager {
         }
     }
 
-
-    // Manejar botón de cierre (mostrar confirmación)
     async handleCloseButton(interaction) {
         const { user, channel, guild } = interaction;
 
@@ -167,7 +157,6 @@ export default class TicketInteractionManager {
             });
         }
 
-        // Verificar permisos
         const config = await this.client.ticketManager.getGuildConfig(guild.id);
         const hasPermission = interaction.member.roles.cache.has(config?.supportRoleId) ||
             user.id === ticket.creatorId;
@@ -178,10 +167,9 @@ export default class TicketInteractionManager {
             });
         }
 
-        // Mostrar mensaje de confirmación
         const confirmEmbed = new EmbedBuilder()
             .setTitle('**```CONFIRMAR CIERRE DE TICKET```**')
-            .setDescription('<:candado:1431438950345740298> |  `¿Estás seguro de que quieres cerrar este ticket?`')
+            .setDescription('🔐 `¿Estás seguro de que quieres cerrar este ticket?`')
             .setColor('#FFA500')
 
         const confirmButtons = new ActionRowBuilder().addComponents(
@@ -201,7 +189,6 @@ export default class TicketInteractionManager {
         });
     }
 
-    // Manejar confirmación de cierre
     async handleConfirmClose(interaction) {
         const { user, channel, guild } = interaction;
 
@@ -215,12 +202,10 @@ export default class TicketInteractionManager {
             });
         }
 
-        // ⚙️ Crear modal con razón y evidencia
         const modal = new ModalBuilder()
             .setCustomId("close_ticket_modal")
-            .setTitle("🔒 Cerrar Ticket");
+            .setTitle("Cerrar Ticket");
 
-        // Campo 1: Razón del cierre
         const reasonInput = new TextInputBuilder()
             .setCustomId("razon_cierre")
             .setLabel("Motivo del cierre del ticket")
@@ -228,7 +213,6 @@ export default class TicketInteractionManager {
             .setPlaceholder("Ejemplo: El problema fue solucionado correctamente.")
             .setRequired(true);
 
-        // Campo 2: Evidencia o prueba
         const evidenceInput = new TextInputBuilder()
             .setCustomId("evidencia_ticket")
             .setLabel("Evidencia o enlace (opcional)")
@@ -241,11 +225,9 @@ export default class TicketInteractionManager {
 
         modal.addComponents(row1, row2);
 
-        // Mostrar modal al usuario
         await interaction.showModal(modal);
     }
 
-    // Manejar envío del modal de cierre
     async handleModalSubmit(interaction) {
         
         
@@ -260,71 +242,63 @@ export default class TicketInteractionManager {
         if (!ticket) {
             return await interaction.reply({
                 content: '❌ Este canal no es un ticket válido.',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
 
         const razon = interaction.fields.getTextInputValue("razon_cierre");
         const evidencia = interaction.fields.getTextInputValue("evidencia_ticket") || "No proporcionada";
 
-        // ✅ DETECTAR SI LA EVIDENCIA ES UNA URL DE IMAGEN
         let evidenceForLog = evidencia;
 
-        // Si es una URL de imagen válida, pasarla directamente para que sendLog use setImage
         if (this.client.ticketManager.isValidImageUrl(evidencia)) {
             evidenceForLog = evidencia;
         }
 
-        // Cerrar el ticket en la base de datos - pasar la evidencia también
         const result = await this.client.ticketManager.closeTicket(
             ticket.ticketId,
             user.id,
             razon,
-            evidenceForLog  // ← Pasar la evidencia al closeTicket
+            evidenceForLog  
         );
 
         if (!result.success) {
             return await interaction.reply({
                 content: `❌ Error al cerrar el ticket: ${result.error}`,
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
 
-        // 📋 Embed de cierre con evidencia
         const closeEmbed = new EmbedBuilder()
             .setTitle("**```TICKET CERRADO```**")
             .setColor("#FF0000")
-            .setDescription(`<:candado:1431438950345740298> | El ticket fue cerrado por <@${user.id}>`)
+            .setDescription(`🔐 El ticket fue cerrado por <@${user.id}>`)
             .addFields(
                 { name: "**```RAZÓN DE CIERRE```**", value: razon },
                 { name: "**```EVIDENCIA```**", value: evidencia }
             )
             .setTimestamp();
 
-        // ✅ SI LA EVIDENCIA ES IMAGEN, AÑADIRLA AL EMBED
         if (this.client.ticketManager.isValidImageUrl(evidencia)) {
             closeEmbed.setImage(evidencia);
         }
 
         await interaction.reply({
             embeds: [closeEmbed],
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
 
-        // ✅ Enviar log - pasar solo la evidencia, no el embed completo
         await this.client.ticketManager.sendLog(
             guild.id,
-            `<:candado:1431438950345740298> | \`TICKET:\` ${ticket.ticketId}\n\`CERRADO POR:\` <@${user.id}>\n\`RAZÓN:\` ${razon}`,
+            `🔐 \`TICKET:\` ${ticket.ticketId}\n\`CERRADO POR:\` <@${user.id}>\n\`RAZÓN:\` ${razon}`,
             evidenceForLog 
         );
 
-        // Eliminar el canal después de unos segundos
         setTimeout(() => {
             channel.delete().catch(() => { });
         }, 5000);
     }
 
-    // Manejar cancelación de cierre
     async handleCancelClose(interaction) {
         await interaction.editReply({
             content: '❌ Cierre de ticket cancelado.',
@@ -332,7 +306,6 @@ export default class TicketInteractionManager {
         });
     }
 
-    // Manejar reclamación de ticket
     async handleClaimTicket(interaction) {
         const { user, channel, guild } = interaction;
 
@@ -346,14 +319,12 @@ export default class TicketInteractionManager {
             });
         }
 
-        // Verificar si el ticket ya está reclamado
         if (ticket.status === 'claimed') {
             return await interaction.editReply({
                 content: `❌ Este ticket ya fue reclamado por <@${ticket.claimerId}>.`
             });
         }
 
-        // Verificar si el usuario tiene el rol de soporte
         const config = await this.client.ticketManager.getGuildConfig(guild.id);
         if (!config?.supportRoleId || !interaction.member.roles.cache.has(config.supportRoleId)) {
             return await interaction.editReply({
@@ -377,7 +348,6 @@ export default class TicketInteractionManager {
         }
     }
 
-    // Manejar generación de transcript
     async handleTranscriptTicket(interaction) {
         const { user, channel, guild } = interaction;
 
@@ -391,7 +361,6 @@ export default class TicketInteractionManager {
             });
         }
 
-        // Verificar permisos
         const config = await this.client.ticketManager.getGuildConfig(guild.id);
         const hasPermission = interaction.member.roles.cache.has(config?.supportRoleId) ||
             user.id === ticket.creatorId;
@@ -402,7 +371,6 @@ export default class TicketInteractionManager {
             });
         }
 
-        // Mostrar mensaje de que se está generando el transcript
         await interaction.editReply({
             content: '⏳ Generando transcript, por favor espera...'
         });
@@ -413,7 +381,6 @@ export default class TicketInteractionManager {
         );
 
         if (result.success) {
-            // Si el transcript es muy largo, dividirlo en partes
             if (result.transcript.length > 1500) {
                 const part1 = result.transcript.substring(0, 1500);
                 const part2 = result.transcript.substring(1500);
@@ -424,7 +391,7 @@ export default class TicketInteractionManager {
 
                 await interaction.followUp({
                     content: `(Parte 2/2):\n\`\`\`${part2}\`\`\``,
-                    flags: MessageFlags.Ephemeral
+                    flags: 64
                 });
             } else {
                 await interaction.editReply({
@@ -438,11 +405,10 @@ export default class TicketInteractionManager {
         }
     }
 
-    // Manejo de errores para interacciones
     async handleInteractionError(interaction, error) {
         const errorResponse = {
             content: '❌ Ocurrió un error al procesar la interacción',
-            flags: MessageFlags.Ephemeral
+            flags: 64
         };
 
         try {
@@ -456,7 +422,6 @@ export default class TicketInteractionManager {
         }
     }
 
-    // Método para verificar permisos de ticket (útil para otros módulos)
     async checkTicketPermissions(interaction, ticket) {
         const config = await this.client.ticketManager.getGuildConfig(interaction.guild.id);
         const isSupport = interaction.member.roles.cache.has(config?.supportRoleId);
@@ -465,7 +430,6 @@ export default class TicketInteractionManager {
         return { hasPermission: isSupport || isCreator, isSupport, isCreator };
     }
 
-    // Método para obtener ticket por canal
     async getTicketByChannel(channelId) {
         return await this.client.db.models.Ticket.findOne({ channelId });
     }

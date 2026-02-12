@@ -61,7 +61,7 @@ export default class ShopAdminCommand extends SlashCommand {
 
             return interaction.reply({
                 content: `⚙️ **Configuración de la Tienda**\n\n📄 **Canal de logs:** ${config.logChannelId ? `<#${config.logChannelId}>` : '❌ No configurado'}\n\n💡 Usa \`/shop-admin config logs #canal\` para cambiarlo.`,
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
 
@@ -94,7 +94,7 @@ export default class ShopAdminCommand extends SlashCommand {
             return interaction.reply({
                 content: '🛠️ **Panel de administración de la tienda**',
                 components,
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
     }

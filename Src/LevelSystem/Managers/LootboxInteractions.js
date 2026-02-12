@@ -44,7 +44,7 @@ export default async function handleLootboxInteraction(client, interaction) {
         if (!interaction.replied && !interaction.deferred) {
             await interaction.reply({
                 content: '<:rechazado:1453073959842091008> Error en el sistema de lootboxes.',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             }).catch(() => { });
         }
 

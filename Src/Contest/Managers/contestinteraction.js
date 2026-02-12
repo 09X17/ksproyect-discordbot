@@ -89,7 +89,7 @@ export default async function handleContestInteraction(client, interaction) {
         if (!interaction.replied && !interaction.deferred) {
             await interaction.reply({
                 content: '❌ Ocurrió un error en el sistema de concurso.',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             }).catch(() => { });
         }
 
@@ -769,7 +769,7 @@ async function handleViewVoters(client, interaction) {
 
     await interaction.reply({
         components: [container],
-        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+        flags: MessageFlags.IsComponentsV2 | flags: 64
     });
 
     return true;

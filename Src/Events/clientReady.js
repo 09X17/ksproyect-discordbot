@@ -5,8 +5,6 @@ export default {
     once: false,
     async execute(client) {
 
-        startTwitchAlerts(client);
-
         const stats = client.getStats();
         client.user.setActivity({
             name: `${client.config.prefix}help | ${stats.guilds} servidores`,
@@ -31,18 +29,11 @@ export default {
 
         setInterval(async () => {
             try {
-                // 1. Reset diario de misiones (a las 00:00)
                 await client.levelManager.questManager?.resetDailyQuests?.();
-
-                // 2. Finalizar duelos expirados
-                await client.levelManager.pvpManager?.cleanupExpiredDuels?.();
-
-                // 3. Actualizar estadísticas de clanes
-                await client.levelManager.clanManager?.updateClanStats?.();
             } catch (error) {
                 console.error('Error en tareas automáticas:', error);
             }
-        }, 300000); // Cada 5 minutos
+        }, 300000); 
 
 
     }

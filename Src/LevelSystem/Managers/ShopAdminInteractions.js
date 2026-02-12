@@ -272,7 +272,7 @@ export default async function ShopAdminInteractions(client, interaction) {
         if (!item) {
             return interaction.reply({
                 content: '❌ Item no encontrado',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
 
@@ -332,7 +332,7 @@ export default async function ShopAdminInteractions(client, interaction) {
             components: [
                 new ActionRowBuilder().addComponents(buttons)
             ],
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
     }
 
@@ -346,7 +346,7 @@ export default async function ShopAdminInteractions(client, interaction) {
         if (!session || session.sid !== sid || !session.itemId) {
             return interaction.reply({
                 content: '❌ Sesión expirada. Selecciona el item nuevamente.',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
 
@@ -369,7 +369,7 @@ export default async function ShopAdminInteractions(client, interaction) {
         if (!session || session.sid !== sid || !session.itemId) {
             return interaction.reply({
                 content: '❌ Sesión expirada. Selecciona el item nuevamente.',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
 
@@ -393,7 +393,7 @@ export default async function ShopAdminInteractions(client, interaction) {
         if (!session || session.sid !== sid || !session.itemId) {
             return interaction.reply({
                 content: '❌ Sesión expirada. Selecciona el item nuevamente.',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
 
@@ -417,7 +417,7 @@ export default async function ShopAdminInteractions(client, interaction) {
         if (!session || session.sid !== sid) {
             return interaction.reply({
                 content: '❌ Sesión expirada. Por favor, intenta nuevamente.',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
 
@@ -444,13 +444,13 @@ export default async function ShopAdminInteractions(client, interaction) {
             if (!item) {
                 return interaction.reply({
                     content: '❌ Item no encontrado',
-                    flags: MessageFlags.Ephemeral
+                    flags: 64
                 });
             }
         } else {
             return interaction.reply({
                 content: '❌ Error en la sesión',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
 
@@ -586,7 +586,7 @@ export default async function ShopAdminInteractions(client, interaction) {
 
         return interaction.reply({
             content: `✅ Item **${item.name}** ${action === 'create' ? 'creado' : 'actualizado'} correctamente.`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
     }
 
@@ -600,7 +600,7 @@ export default async function ShopAdminInteractions(client, interaction) {
         if (!session || session.sid !== sid || !session.itemId) {
             return interaction.reply({
                 content: '❌ Sesión expirada',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
 
@@ -619,7 +619,7 @@ export default async function ShopAdminInteractions(client, interaction) {
         if (!session || session.sid !== sid || !session.itemId) {
             return interaction.reply({
                 content: '❌ Sesión expirada',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
 
@@ -629,7 +629,7 @@ export default async function ShopAdminInteractions(client, interaction) {
         if (Number.isNaN(stock) || stock < -1) {
             return interaction.reply({
                 content: '❌ Stock inválido. Usa -1 o un número ≥ 0',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
 
@@ -641,7 +641,7 @@ export default async function ShopAdminInteractions(client, interaction) {
 
         return interaction.reply({
             content: `📦 Stock actualizado a **${stock === -1 ? 'Infinito ♾️' : stock}**`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
     }
 
@@ -655,7 +655,7 @@ export default async function ShopAdminInteractions(client, interaction) {
         if (!session || session.sid !== sid || !session.itemId) {
             return interaction.reply({
                 content: '❌ Sesión expirada',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
 
@@ -663,7 +663,7 @@ export default async function ShopAdminInteractions(client, interaction) {
         if (!item) {
             return interaction.reply({
                 content: '❌ Item no encontrado',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
 
@@ -714,7 +714,7 @@ export default async function ShopAdminInteractions(client, interaction) {
 
         return interaction.reply({
             content: `💰 Datos de economía actualizados para **${item.name}**`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
     }
 
@@ -728,7 +728,7 @@ export default async function ShopAdminInteractions(client, interaction) {
         if (!session || session.sid !== sid || !session.itemId) {
             return interaction.reply({
                 content: '❌ Sesión expirada',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
 
@@ -742,7 +742,7 @@ export default async function ShopAdminInteractions(client, interaction) {
 
         return interaction.reply({
             content: `✅ Rol asignado correctamente al item.`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
     }
 
@@ -754,7 +754,7 @@ export default async function ShopAdminInteractions(client, interaction) {
         if (!session || session.sid !== sid || !session.itemId) {
             return interaction.reply({
                 content: '❌ Sesión expirada',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
 
@@ -773,7 +773,7 @@ export default async function ShopAdminInteractions(client, interaction) {
         if (!session || session.sid !== sid || !session.itemId) {
             return interaction.reply({
                 content: '❌ Sesión expirada',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
 
@@ -784,7 +784,7 @@ export default async function ShopAdminInteractions(client, interaction) {
         if (hexColor && !/^#[0-9A-Fa-f]{6}$/.test(hexColor)) {
             return interaction.reply({
                 content: '❌ El color debe ser un HEX válido (ej: #ff0000)',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
 
@@ -808,7 +808,7 @@ export default async function ShopAdminInteractions(client, interaction) {
                 `🎨 Permiso actualizado correctamente.\n` +
                 `**Permiso:** \`${permission}\`\n` +
                 (hexColor ? `**Color:** \`${hexColor}\`` : '⚪ Sin color asignado'),
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
     }
 

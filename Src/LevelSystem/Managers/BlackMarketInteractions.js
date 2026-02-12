@@ -37,7 +37,7 @@ export default async function handleBlackMarketInteraction(client, interaction) 
         if (!interaction.replied && !interaction.deferred) {
             await interaction.reply({
                 content: '❌ Error en el mercado negro.',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             }).catch(() => { });
         }
         return true;
@@ -50,7 +50,7 @@ export default async function handleBlackMarketInteraction(client, interaction) 
         if (interaction.user.id !== ownerId) {
             return interaction.reply({
                 content: '⛔ Este juego no es tuyo.',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
 

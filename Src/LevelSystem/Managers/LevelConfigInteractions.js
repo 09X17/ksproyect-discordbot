@@ -235,7 +235,7 @@ export default async function LevelConfigInteractions(client, interaction) {
                     `Estado: **${config.enabled ? '🟢 ACTIVO' : '🔴 INACTIVO'}**\n` +
                     '`Configuración completa del sistema`',
                 components: buildSinglePanel(config),
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         }
@@ -280,7 +280,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
         await interaction.reply({
             content: `Sistema ${config.enabled ? '🟢 ACTIVADO' : '🔴 DESACTIVADO'}`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -301,7 +301,7 @@ export default async function LevelConfigInteractions(client, interaction) {
         await config.save();
         clearCache();
 
-        await interaction.reply({ content: '✅ XP por mensajes actualizado', flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: '✅ XP por mensajes actualizado', flags: 64 });
         return true;
     }
 
@@ -321,7 +321,7 @@ export default async function LevelConfigInteractions(client, interaction) {
         await config.save();
         clearCache();
 
-        await interaction.reply({ content: '🎙️ Voice XP actualizado', flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: '🎙️ Voice XP actualizado', flags: 64 });
         return true;
     }
 
@@ -340,7 +340,7 @@ export default async function LevelConfigInteractions(client, interaction) {
         await config.save();
         clearCache();
 
-        await interaction.reply({ content: '📈 Curva actualizada', flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: '📈 Curva actualizada', flags: 64 });
         return true;
     }
 
@@ -359,7 +359,7 @@ export default async function LevelConfigInteractions(client, interaction) {
         await config.save();
         clearCache();
 
-        await interaction.reply({ content: '📩 Límites actualizados', flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: '📩 Límites actualizados', flags: 64 });
         return true;
     }
 
@@ -374,7 +374,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
         await interaction.reply({
             content: `Notificaciones DM ${config.notifications.levelUpDM ? '🟢 ACTIVADAS' : '🔴 DESACTIVADAS'}`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -387,7 +387,7 @@ export default async function LevelConfigInteractions(client, interaction) {
         await interaction.reply({
             content: 'Selecciona el tipo de notificación:',
             components: [notificationTypeMenu(config)],
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -400,7 +400,7 @@ export default async function LevelConfigInteractions(client, interaction) {
         await interaction.update({
             content: `Tipo cambiado a **${interaction.values[0]}**`,
             components: [],
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -419,7 +419,7 @@ export default async function LevelConfigInteractions(client, interaction) {
         await config.save();
         clearCache();
 
-        await interaction.reply({ content: '📝 Mensaje actualizado', flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: '📝 Mensaje actualizado', flags: 64 });
         return true;
     }
 
@@ -441,7 +441,7 @@ export default async function LevelConfigInteractions(client, interaction) {
         await config.save();
         clearCache();
 
-        await interaction.reply({ content: '🖼️ Embed actualizado', flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: '🖼️ Embed actualizado', flags: 64 });
         return true;
     }
 
@@ -467,7 +467,7 @@ export default async function LevelConfigInteractions(client, interaction) {
         await config.save();
         clearCache();
 
-        await interaction.reply({ content: '➕ Campo añadido', flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: '➕ Campo añadido', flags: 64 });
         return true;
     }
 
@@ -495,7 +495,7 @@ export default async function LevelConfigInteractions(client, interaction) {
             index >= config.notifications.levelUpEmbed.fields.length) {
             await interaction.reply({
                 content: '❌ Índice inválido',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         }
@@ -506,7 +506,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
         await interaction.reply({
             content: `🗑️ Campo ${index} eliminado`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -538,7 +538,7 @@ export default async function LevelConfigInteractions(client, interaction) {
             content: channelId
                 ? `📍 Canal establecido: <#${channelId}>`
                 : '📍 Canal de notificaciones removido',
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -566,7 +566,7 @@ export default async function LevelConfigInteractions(client, interaction) {
         await interaction.reply({
             content: '⚡ **Gestión de Multiplicadores**',
             components: [row(selectMenu)],
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -617,7 +617,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
         await interaction.reply({
             content: `⚡ Multiplicador del canal <#${channelId}> establecido a ${multiplier}x`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -629,7 +629,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
         await interaction.reply({
             content: `✅ Multiplicador del canal <#${channelId}> eliminado`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -642,7 +642,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
         await interaction.reply({
             content: `⚡ Multiplicador del rol <@&${roleId}> establecido a ${multiplier}x`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -654,7 +654,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
         await interaction.reply({
             content: `✅ Multiplicador del rol <@&${roleId}> eliminado`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -668,7 +668,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
         await interaction.reply({
             content: `⚡ Multiplicador de canal <#${channelId}> establecido a ${multiplier}x`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -681,7 +681,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
         await interaction.reply({
             content: `⚡ Multiplicador de rol <@&${roleId}> establecido a ${multiplier}x`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -706,7 +706,7 @@ export default async function LevelConfigInteractions(client, interaction) {
         await interaction.reply({
             content: '🚫 **Gestión de exclusiones de XP**',
             components: [row(menu)],
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
 
         return true;
@@ -752,7 +752,7 @@ export default async function LevelConfigInteractions(client, interaction) {
             await config.addIgnoredChannel(id);
             await interaction.reply({
                 content: `🚫 Canal <#${id}> excluido de XP`,
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         }
@@ -762,7 +762,7 @@ export default async function LevelConfigInteractions(client, interaction) {
             await config.removeIgnoredChannel(id);
             await interaction.reply({
                 content: `✅ Canal <#${id}> quitado de exclusiones`,
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         }
@@ -777,7 +777,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
             await interaction.reply({
                 content: `🚫 Rol <@&${id}> excluido de XP`,
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         }
@@ -792,7 +792,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
             await interaction.reply({
                 content: `✅ Rol <@&${id}> quitado de exclusiones`,
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         }
@@ -805,7 +805,7 @@ export default async function LevelConfigInteractions(client, interaction) {
     if (interaction.isButton() && interaction.customId === 'level_roles_manage') {
         await interaction.reply({
             content: '⚠️ La gestión de roles por nivel se maneja a través del comando `/role-level` separado.',
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -838,7 +838,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
             await interaction.reply({
                 content: msg,
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         }
@@ -864,7 +864,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
         await interaction.reply({
             embeds: [embed],
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
 
         return true;
@@ -884,7 +884,7 @@ export default async function LevelConfigInteractions(client, interaction) {
                 '```json\n' +
                 JSON.stringify(clean, null, 2) +
                 '\n```',
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -926,14 +926,14 @@ export default async function LevelConfigInteractions(client, interaction) {
 
             await interaction.reply({
                 content: '📥 Configuración importada correctamente',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
 
         } catch (err) {
             await interaction.reply({
                 content: '❌ JSON inválido',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         }
@@ -968,7 +968,7 @@ export default async function LevelConfigInteractions(client, interaction) {
         if (confirm !== 'CONFIRMAR') {
             await interaction.reply({
                 content: '❌ Confirmación incorrecta',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         }
@@ -977,7 +977,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
         await interaction.reply({
             content: '♻️ Configuración reseteada completamente',
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -1036,7 +1036,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
         await interaction.reply({
             content: `🚫 Canal <#${channelId}> excluido de XP`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -1047,7 +1047,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
         await interaction.reply({
             content: `✅ Canal <#${channelId}> removido de exclusiones`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -1092,7 +1092,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
         await interaction.reply({
             content: `✅ Multiplicador del canal <#${channelId}> removido`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -1103,7 +1103,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
         await interaction.reply({
             content: `✅ Multiplicador del rol <@&${roleId}> removido`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -1120,7 +1120,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
         await interaction.reply({
             content: `⚠️ Penalización del rol <@&${roleId}> establecida a ${multiplier}x`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -1131,7 +1131,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
         await interaction.reply({
             content: `✅ Penalización del rol <@&${roleId}> removida`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -1207,7 +1207,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
         await interaction.reply({
             content: '💰 Configuración de economía actualizada',
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -1231,7 +1231,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
         await interaction.reply({
             content: `🛍️ Tienda ${config.shop.enabled ? 'activada' : 'desactivada'}${config.shop.logChannelId ? ` (Logs: <#${config.shop.logChannelId}>)` : ''}`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -1256,7 +1256,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
         await interaction.reply({
             content: `🏆 Leaderboard configurado (Top ${config.leaderboard.topCount}, actualización cada ${config.leaderboard.updateInterval}s)`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -1283,7 +1283,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
         await interaction.reply({
             content: '🔔 Configuración de notificaciones avanzada actualizada',
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -1297,7 +1297,7 @@ export default async function LevelConfigInteractions(client, interaction) {
         if (!client.levelManager?.eventManager) {
             return interaction.reply({
                 content: '❌ El sistema de eventos no está disponible.',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
 
@@ -1324,14 +1324,14 @@ export default async function LevelConfigInteractions(client, interaction) {
             await interaction.reply({
                 content: '🎪 **Selecciona un evento para iniciar:**',
                 components: [row(selectMenu)],
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         } catch (error) {
             console.error('Error mostrando menú de eventos:', error);
             await interaction.reply({
                 content: '❌ Error al mostrar eventos disponibles.',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         }
@@ -1376,7 +1376,7 @@ export default async function LevelConfigInteractions(client, interaction) {
         if (!client.levelManager?.eventManager) {
             await interaction.reply({
                 content: '❌ El sistema de eventos no está disponible.',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         }
@@ -1387,13 +1387,13 @@ export default async function LevelConfigInteractions(client, interaction) {
 
             await interaction.reply({
                 content: `✅ Evento **${event.name}** iniciado por **${duration} horas**.\n\n${event.description}`,
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         } catch (error) {
             await interaction.reply({
                 content: `❌ Error iniciando evento: ${error.message}`,
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         }
@@ -1408,7 +1408,7 @@ export default async function LevelConfigInteractions(client, interaction) {
         if (!client.levelManager?.eventManager) {
             await interaction.reply({
                 content: '❌ El sistema de eventos no está disponible.',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         }
@@ -1419,13 +1419,13 @@ export default async function LevelConfigInteractions(client, interaction) {
 
             await interaction.reply({
                 content: `✅ Evento **${event.name}** iniciado por **${duration} horas**.\n\n${event.description}`,
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         } catch (error) {
             await interaction.reply({
                 content: `❌ Error iniciando evento: ${error.message}`,
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         }
@@ -1436,7 +1436,7 @@ export default async function LevelConfigInteractions(client, interaction) {
         if (!client.levelManager?.eventManager) {
             return interaction.reply({
                 content: '❌ El sistema de eventos no está disponible.',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
 
@@ -1448,7 +1448,7 @@ export default async function LevelConfigInteractions(client, interaction) {
             if (activeEvents.length === 0) {
                 return interaction.reply({
                     content: '📭 No hay eventos activos para detener.',
-                    flags: MessageFlags.Ephemeral
+                    flags: 64
                 });
             }
 
@@ -1466,14 +1466,14 @@ export default async function LevelConfigInteractions(client, interaction) {
             await interaction.reply({
                 content: '⏹️ **Selecciona un evento para detener:**',
                 components: [row(selectMenu)],
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         } catch (error) {
             console.error('Error mostrando menú de eventos activos:', error);
             await interaction.reply({
                 content: '❌ Error al mostrar eventos activos.',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         }
@@ -1567,7 +1567,7 @@ export default async function LevelConfigInteractions(client, interaction) {
 
         await interaction.reply({
             content: `✅ Configuración de eventos actualizada:\n\n${updates.join('\n')}`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }
@@ -1595,7 +1595,7 @@ export default async function LevelConfigInteractions(client, interaction) {
         if (!client.levelManager?.eventManager) {
             await interaction.reply({
                 content: '❌ El sistema de eventos no está disponible.',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         }
@@ -1649,14 +1649,14 @@ export default async function LevelConfigInteractions(client, interaction) {
                 content: `✅ Evento **${event.name}** creado y activado por **${duration} horas**.\n\n` +
                     `Tipo: ${this.getTipoNombre(event.type)}\n` +
                     `ID: \`${event.eventId}\``,
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         } catch (error) {
             console.error('Error creando evento rápido:', error);
             await interaction.reply({
                 content: `❌ Error creando evento: ${error.message}`,
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         }
@@ -1670,7 +1670,7 @@ export default async function LevelConfigInteractions(client, interaction) {
         if (!client.levelManager?.eventManager) {
             await interaction.reply({
                 content: '❌ El sistema de eventos no está disponible.',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         }
@@ -1720,7 +1720,7 @@ export default async function LevelConfigInteractions(client, interaction) {
         if (!client.levelManager?.eventManager) {
             await interaction.reply({
                 content: '❌ El sistema de eventos no está disponible.',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         }
@@ -1752,13 +1752,13 @@ export default async function LevelConfigInteractions(client, interaction) {
             await interaction.reply({
                 content: `✅ Evento **${event.name}** actualizado.\n` +
                     `Campo **${actualField}**: ${value}`,
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         } catch (error) {
             await interaction.reply({
                 content: `❌ Error editando evento: ${error.message}`,
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
             return true;
         }
@@ -1789,7 +1789,7 @@ export default async function LevelConfigInteractions(client, interaction) {
                 `📊 Base de datos: ${configFromDB ? `enabled = ${configFromDB.enabled}` : 'No encontrado'}\n` +
                 `💾 En caché: ${cached ? `enabled = ${cached.data?.enabled} (edad: ${Date.now() - cached.timestamp}ms)` : 'No en caché'}\n` +
                 `🔧 Sistema: ${configFromDB?.enabled ? '🟢 ACTIVO' : '🔴 INACTIVO'}`,
-            flags: MessageFlags.Ephemeral
+            flags: 64
         });
         return true;
     }

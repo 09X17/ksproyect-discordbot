@@ -255,7 +255,7 @@ export default class EventsAdminCommand extends SlashCommand {
         if (!client.levelManager?.eventManager) {
             return interaction.reply({
                 content: '❌ El sistema de eventos no está disponible en este momento.',
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
 
@@ -288,13 +288,13 @@ export default class EventsAdminCommand extends SlashCommand {
             if (interaction.replied || interaction.deferred) {
                 return interaction.followUp({
                     content: `❌ Error: ${error.message}`,
-                    flags: MessageFlags.Ephemeral
+                    flags: 64
                 });
             }
 
             return interaction.reply({
                 content: `❌ Error: ${error.message}`,
-                flags: MessageFlags.Ephemeral
+                flags: 64
             });
         }
     }
@@ -338,7 +338,7 @@ export default class EventsAdminCommand extends SlashCommand {
      * Panel principal de gestión de eventos
      */
     async handlePanel(client, interaction) {
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        await interaction.deferReply({ flags: 64 });
 
         const guildId = interaction.guild.id;
         const eventManager = client.levelManager.eventManager;
@@ -433,7 +433,7 @@ export default class EventsAdminCommand extends SlashCommand {
      * Inicia un evento
      */
     async handleIniciar(client, interaction) {
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        await interaction.deferReply({ flags: 64 });
 
         const eventId = interaction.options.getString('evento');
         const duracion = interaction.options.getInteger('duracion') || 24;
@@ -487,7 +487,7 @@ export default class EventsAdminCommand extends SlashCommand {
      * Detiene un evento activo
      */
     async handleDetener(client, interaction) {
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        await interaction.deferReply({ flags: 64 });
 
         const eventId = interaction.options.getString('evento-id');
         const guildId = interaction.guild.id;
@@ -520,7 +520,7 @@ export default class EventsAdminCommand extends SlashCommand {
      * Lista todos los eventos
      */
     async handleLista(client, interaction) {
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        await interaction.deferReply({ flags: 64 });
 
         const soloActivos = interaction.options.getBoolean('solo-activos') || false;
         const guildId = interaction.guild.id;
@@ -607,7 +607,7 @@ export default class EventsAdminCommand extends SlashCommand {
      * Crea un evento personalizado
      */
     async handleCrear(client, interaction) {
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        await interaction.deferReply({ flags: 64 });
 
         const nombre = interaction.options.getString('nombre');
         const descripcion = interaction.options.getString('descripcion');
@@ -684,7 +684,7 @@ export default class EventsAdminCommand extends SlashCommand {
      * Edita un evento personalizado
      */
     async handleEditar(client, interaction) {
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        await interaction.deferReply({ flags: 64 });
 
         const eventId = interaction.options.getString('evento-id');
         const campo = interaction.options.getString('campo');
@@ -737,7 +737,7 @@ export default class EventsAdminCommand extends SlashCommand {
      * Elimina un evento personalizado
      */
     async handleEliminar(client, interaction) {
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        await interaction.deferReply({ flags: 64 });
 
         const eventId = interaction.options.getString('evento-id');
         const confirmar = interaction.options.getBoolean('confirmar');
@@ -776,7 +776,7 @@ export default class EventsAdminCommand extends SlashCommand {
      * Muestra estadísticas de un evento
      */
     async handleStats(client, interaction) {
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        await interaction.deferReply({ flags: 64 });
 
         const eventId = interaction.options.getString('evento-id');
         const guildId = interaction.guild.id;
@@ -845,7 +845,7 @@ export default class EventsAdminCommand extends SlashCommand {
      * Muestra el historial de eventos
      */
     async handleHistorial(client, interaction) {
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        await interaction.deferReply({ flags: 64 });
 
         const cantidad = interaction.options.getInteger('cantidad') || 10;
         const guildId = interaction.guild.id;
@@ -885,7 +885,7 @@ export default class EventsAdminCommand extends SlashCommand {
      * Configura el sistema de eventos
      */
     async handleConfig(client, interaction) {
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        await interaction.deferReply({ flags: 64 });
 
         const canal = interaction.options.getChannel('canal-anuncios');
         const autoInicio = interaction.options.getBoolean('auto-inicio');
