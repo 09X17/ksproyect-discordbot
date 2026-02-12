@@ -14,7 +14,6 @@ import {
 import crypto from 'crypto';
 import ShopItem from '../Models/ShopItem.js';
 import ShopConfig from '../Models/ShopConfig.js';
-import { PetsConfig } from './Petsconfig.js';
 
 // ===================================================
 // CACHE MEJORADO
@@ -240,22 +239,6 @@ function buildPermissionModal(customId, item = {}) {
         );
 }
 
-function buildPetSelectModal(customId, item = {}) {
-    return new ModalBuilder()
-        .setCustomId(customId)
-        .setTitle('Selecciona la mascota')
-        .addComponents(
-            new ActionRowBuilder().addComponents(
-                new TextInputBuilder()
-                    .setCustomId('petId')
-                    .setLabel('Escribe el ID de la mascota')
-                    .setStyle(TextInputStyle.Short)
-                    .setPlaceholder('Ej: cat, dog, fox')
-                    .setRequired(true)
-            )
-        );
-}
-
 
 // ===================================================
 // MAIN HANDLER
@@ -343,16 +326,6 @@ export default async function ShopAdminInteractions(client, interaction) {
                     .setStyle(ButtonStyle.Primary)
             );
         }
-
-        if (item.type === 'pet') {
-            buttons.push(
-                new ButtonBuilder()
-                    .setCustomId(`shopadmin_pet_${sid}`)
-                    .setLabel('🦴 Mascota')
-                    .setStyle(ButtonStyle.Primary)
-            );
-        }
-
 
         return interaction.reply({
             content: `🛠️ **${item.name}** seleccionado. ¿Qué deseas editar?`,
@@ -539,7 +512,6 @@ export default async function ShopAdminInteractions(client, interaction) {
                     title: 'title',
 
                     permission: 'permission', // 🔥 AÑADIDO
-                    pet: "pet",
 
                     custom: 'custom'
                 };
@@ -559,7 +531,6 @@ export default async function ShopAdminInteractions(client, interaction) {
                     economy: 'economy',
 
                     permission: 'cosmetics', // 🔥 permisos = cosméticos
-                    pet: "pet",
 
                     custom: 'general'
                 };
@@ -840,75 +811,6 @@ export default async function ShopAdminInteractions(client, interaction) {
             flags: MessageFlags.Ephemeral
         });
     }
-
-    if (interaction.isButton() && interaction.customId.startsWith('shopadmin_pet_')) {
-        const sid = interaction.customId.split('_').pop();
-        const session = getUserSession(userId);
-
-        if (!session || session.sid !== sid || !session.itemId)
-            return interaction.reply({ content: '❌ Sesión expirada', flags: MessageFlags.Ephemeral });
-
-        const item = await ShopItem.findById(session.itemId);
-        if (!item) return;
-
-        return interaction.showModal(buildPetSelectModal(`shopadmin_pet_modal_${sid}`, item));
-    }
-
-
-    if (interaction.isStringSelectMenu() && interaction.customId === 'shopadmin_pet_select') {
-        const selectedPetId = interaction.values[0];
-        const session = getUserSession(userId);
-        const item = await ShopItem.findById(session.itemId);
-        if (!item) return;
-
-        const pet = PetsConfig[selectedPetId];
-        if (!pet) return interaction.reply({ content: '❌ Mascota inválida', flags: MessageFlags.Ephemeral });
-
-        // Guardar info de la pet en el item
-        item.data = {
-            petId: pet.id,
-            emoji: pet.emoji,
-            rarity: pet.rarity,
-            baseStats: pet.baseStats,
-            abilities: pet.abilities,
-            level: 1
-        };
-
-        await item.save();
-        USER_SESSIONS.delete(userId);
-
-        return interaction.reply({ content: `✅ Mascota **${pet.name}** asignada correctamente.`, flags: MessageFlags.Ephemeral });
-    }
-
-    if (interaction.isModalSubmit() && interaction.customId.startsWith('shopadmin_pet_modal_')) {
-        const sid = interaction.customId.split('_').pop();
-        const session = getUserSession(userId);
-        if (!session || session.sid !== sid || !session.itemId)
-            return interaction.reply({ content: '❌ Sesión expirada', flags: MessageFlags.Ephemeral });
-
-        const item = await ShopItem.findById(session.itemId);
-        if (!item) return;
-
-        const selectedPetId = interaction.fields.getTextInputValue('petId');
-        const pet = PetsConfig[selectedPetId];
-        if (!pet) return interaction.reply({ content: '❌ Mascota inválida', flags: MessageFlags.Ephemeral });
-
-        item.data = {
-            petId: pet.id,
-            emoji: pet.emoji,
-            rarity: pet.rarity,
-            baseStats: pet.baseStats,
-            abilities: pet.abilities,
-            level: 1
-        };
-
-        await item.save();
-        USER_SESSIONS.delete(userId);
-
-        return interaction.reply({ content: `✅ Mascota **${pet.name}** asignada correctamente.`, flags: MessageFlags.Ephemeral });
-    }
-
-
 
     return false;
 }

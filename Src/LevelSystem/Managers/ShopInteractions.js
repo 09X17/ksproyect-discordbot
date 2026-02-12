@@ -2,9 +2,11 @@ import { MessageFlags, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyl
 import ShopItem from '../Models/ShopItem.js';
 import UserLevel from '../Models/UserLevel.js';
 
+
 export default async function handleShopInteraction(client, interaction) {
     try {
         if (interaction.isButton()) {
+
             if (interaction.customId === 'shop_refresh') {
                 return await handleRefresh(client, interaction);
             }
@@ -21,8 +23,8 @@ export default async function handleShopInteraction(client, interaction) {
                 return await handleCancelPurchase(interaction);
             }
         }
-
         if (interaction.isStringSelectMenu()) {
+
             if (interaction.customId === 'shop_category_select') {
                 return await handleCategorySelect(client, interaction);
             }
@@ -55,16 +57,21 @@ export default async function handleShopInteraction(client, interaction) {
                     return true;
                 }
 
-                // 🔥 Aplicar color
+                // 🔥 SETEAR COLOR REAL
                 user.customization ??= {};
                 user.customization.active ??= {};
+
                 user.customization.active.accentColor = item.data.hexColor;
+
                 await user.save();
 
                 await interaction.editReply({
-                    content: `🎨 Color aplicado correctamente: **${item.name}**\nHEX: \`${item.data.hexColor}\``,
+                    content:
+                        `🎨 Color aplicado correctamente: **${item.name}**\n` +
+                        `HEX: \`${item.data.hexColor}\``,
                     components: []
                 });
+
 
                 return true;
             }
@@ -86,10 +93,6 @@ export default async function handleShopInteraction(client, interaction) {
     }
 }
 
-// ========================
-// HANDLERS DE SHOP
-// ========================
-
 async function handleCategorySelect(client, interaction) {
     await safeDefer(interaction);
 
@@ -97,7 +100,7 @@ async function handleCategorySelect(client, interaction) {
     const shopCommand = client.slashCommands.get('shop-items');
     if (!shopCommand) return true;
 
-    const user = await getUser(interaction, client);
+    const user = await getUser(interaction);
     await shopCommand.renderShop(interaction, user, category);
 
     return true;
@@ -159,10 +162,6 @@ async function handleBuyButton(client, interaction) {
     return true;
 }
 
-// ========================
-// CONFIRM PURCHASE
-// ========================
-
 export async function handleConfirmPurchase(client, interaction) {
     await safeDefer(interaction);
 
@@ -177,98 +176,38 @@ export async function handleConfirmPurchase(client, interaction) {
     ]);
 
     if (!item) {
-        await interaction.editReply({ content: '<:rechazado:1453073959842091008> Este item ya no existe.', components: [] });
+        await interaction.editReply({
+            content: '<:rechazado:1453073959842091008> Este item ya no existe.',
+            components: []
+        });
         return true;
     }
 
     if (!user) {
-        await interaction.editReply({ content: '<:rechazado:1453073959842091008> No se encontró tu perfil.', components: [] });
+        await interaction.editReply({
+            content: '<:rechazado:1453073959842091008> No se encontró tu perfil.',
+            components: []
+        });
         return true;
     }
 
     if (item.stock !== -1 && item.stock <= 0) {
-        await interaction.editReply({ content: '<:rechazado:1453073959842091008> Este item está agotado.', components: [] });
+        await interaction.editReply({
+            content: '<:rechazado:1453073959842091008> Este item está agotado.',
+            components: []
+        });
         return true;
     }
 
     try {
-        let extra = '';
-
-        // -----------------------
-        // PERMISSION ITEM
-        // -----------------------
-        if (item.type === 'permission') {
-            user.customization ??= {};
-            user.customization.permissions ??= {};
-
-            if (user.customization.permissions[item.data?.permission]) {
-                await interaction.editReply({
-                    content: '⚠️ Ya tienes este permiso desbloqueado.',
-                    components: []
-                });
-                return true;
-            }
-
-            user.customization.permissions[item.data?.permission] = true;
-            extra += `\n<:permiso:1462284337922707791> Permiso desbloqueado: **${item.data.permission.toUpperCase()}**`;
-        }
-
-        // -----------------------
-        // PET ITEM
-        // -----------------------
-        if (item.type === 'pet') {
-            user.inventory ??= [];
-
-            const alreadyOwned = user.inventory.some(
-                i => i.type === 'pet' && i.petData?.petId === item.data.petId
-            );
-
-            if (alreadyOwned) {
-                await interaction.editReply({
-                    content: `⚠️ Ya tienes la mascota **${item.data.emoji} ${item.name}**`,
-                    components: []
-                });
-                return true;
-            }
-
-            // 🐾 Guardar pet en INVENTARIO
-            user.inventory.push({
-                type: 'pet',
-                name: item.name,
-                quantity: 1,
-                petData: {
-                    petId: item.data.petId,
-                    species: item.data.petId,
-                    rarity: item.data.rarity,
-                    emoji: item.data.emoji,
-                    baseStats: item.data.baseStats,
-                    abilities: item.data.abilities
-                }
-            });
-
-            // 💰 Cobrar la compra (SIN inventario)
-            await user.purchaseItem(
-                { ...item.toObject(), type: 'permission' }, // hack limpio: evita inventory
-                1
-            );
-
-            if (item.stock !== -1) {
-                item.stock--;
-                await item.save();
-            }
-
-            await user.save();
-
+        if (item.type === 'permission' && user.customization?.permissions?.[item.data?.permission]) {
             await interaction.editReply({
-                content: `🦴 Mascota adquirida: **${item.data.emoji} ${item.name}**`,
+                content: '⚠️ Ya tienes este permiso desbloqueado.',
                 components: []
             });
-
-            return true; // ⬅️ CLAVE ABSOLUTA
+            return true;
         }
-        // -----------------------
-        // COMPRA NORMAL (monedas, tokens, XP, boosts)
-        // -----------------------
+
         const result = await user.purchaseItem(item, 1);
 
         if (item.stock !== -1) {
@@ -278,19 +217,39 @@ export async function handleConfirmPurchase(client, interaction) {
 
         await user.save();
 
-        if (result.effects?.coinsGained) extra += `\n<:dinero:1451695904351457330> Monedas obtenidas: **${result.effects.coinsGained}**`;
-        if (result.effects?.tokensGained) extra += `\n<:tokens:1451695903080579192> Tokens obtenidos: **${result.effects.tokensGained}**`;
-        if (result.effects?.xpGained) extra += `\n<:xp:1453078768687255845> XP obtenida: **${result.effects.xpGained}**`;
-        if (result.effects?.accentColorApplied) extra += `\n<:paletadecolor:1462503084159664188> Color aplicado: **${result.effects.accentColorApplied}**`;
+        let extra = '';
+
+        if (result.effects?.coinsGained) {
+            extra += `\n<:dinero:1451695904351457330> \`Monedas obtenidas:\` **${result.effects.coinsGained}**`;
+        }
+
+        if (result.effects?.tokensGained) {
+            extra += `\n<:tokens:1451695903080579192> \`Tokens obtenidos:\` **${result.effects.tokensGained}**`;
+        }
+
+        if (result.effects?.xpGained) {
+            extra += `\n<:xp:1453078768687255845> \`XP obtenida:\` **${result.effects.xpGained}**`;
+        }
+
+        if (result.effects?.permissionGranted) {
+            extra += `\n<:permiso:1462284337922707791> \`Permiso desbloqueado:\` **${result.effects.permissionGranted.toUpperCase()}**`;
+        }
+
+        if (result.effects?.accentColorApplied) {
+            extra += `\n<:paletadecolor:1462503084159664188> \`Color aplicado:\` **${result.effects.accentColorApplied}**`;
+        }
 
         await interaction.editReply({
-            content: `<:informacion:1456828988361146490> COMPRASTE: **${item.name}** Por **${item.price} ${item.currency}**.${extra}`,
+            content:
+                `<:informacion:1456828988361146490> \`COMPRASTE:\` **${item.name}** ` +
+                `Por **${item.price} ${item.currency}**.${extra}`,
             embeds: [],
             components: []
         });
 
     } catch (err) {
         console.error('❌ Error en compra:', err);
+
         await interaction.editReply({
             content: `<:rechazado:1453073959842091008> ${err.message || 'Error al procesar la compra.'}`,
             components: []
@@ -300,18 +259,18 @@ export async function handleConfirmPurchase(client, interaction) {
     return true;
 }
 
-// ========================
-// CANCEL PURCHASE
-// ========================
 async function handleCancelPurchase(interaction) {
     await safeDefer(interaction);
-    await interaction.editReply({ content: '<:rechazado:1453073959842091008> Compra cancelada.', embeds: [], components: [] });
+
+    await interaction.editReply({
+        content: '<:rechazado:1453073959842091008> Compra cancelada.',
+        embeds: [],
+        components: []
+    });
+
     return true;
 }
 
-// ========================
-// ITEM SELECT
-// ========================
 async function handleItemSelect(client, interaction) {
     await safeDefer(interaction);
 
@@ -324,23 +283,23 @@ async function handleItemSelect(client, interaction) {
     return true;
 }
 
-// ========================
-// UTILIDADES
-// ========================
 async function safeDefer(interaction) {
     if (!interaction.deferred && !interaction.replied) {
         await interaction.deferUpdate().catch(() => { });
     }
 }
 
-async function getUser(interaction, client) {
+async function getUser(interaction) {
     let user = await UserLevel.findOne({
         guildId: interaction.guild.id,
         userId: interaction.user.id
     });
 
-    if (!user && client?.levelManager) {
-        user = await client.levelManager.getOrCreateUserLevel(interaction.guild.id, interaction.user.id);
+    if (!user) {
+        return await client.levelManager.getOrCreateUserLevel(
+            interaction.guild.id,
+            interaction.user.id
+        );
     }
 
     return user;
@@ -348,17 +307,27 @@ async function getUser(interaction, client) {
 
 function hasEnoughCurrency(user, currency, price) {
     switch (currency) {
-        case 'coins': return user.coins >= price;
-        case 'tokens': return user.tokens >= price;
-        case 'xp': return user.totalXP >= price;
-        default: return false;
+        case 'coins':
+            return user.coins >= price;
+        case 'tokens':
+            return user.tokens >= price;
+        case 'xp':
+            return user.totalXP >= price;
+        default:
+            return false;
     }
 }
 
 function subtractCurrency(user, currency, price) {
     switch (currency) {
-        case 'coins': user.coins -= price; break;
-        case 'tokens': user.tokens -= price; break;
-        case 'xp': user.xp -= price; break;
+        case 'coins':
+            user.coins -= price;
+            break;
+        case 'tokens':
+            user.tokens -= price;
+            break;
+        case 'xp':
+            user.xp -= price;
+            break;
     }
 }

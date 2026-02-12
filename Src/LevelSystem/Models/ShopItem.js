@@ -1,6 +1,4 @@
 import mongoose from 'mongoose';
-import { PetsConfig } from '../Managers/Petsconfig.js'; // Ajusta la ruta
-import PetsManager from '../Managers/PetsManager.js';
 
 const shopItemSchema = new mongoose.Schema({
     guildId: {
@@ -33,7 +31,6 @@ const shopItemSchema = new mongoose.Schema({
             'consumable',
             'utility',
             "permission",
-            "pet",
             'custom'
         ],
         default: 'custom'
@@ -70,7 +67,6 @@ const shopItemSchema = new mongoose.Schema({
             'cosmetics',
             'utilities',
             "permission",
-            "pet",
             'limited'
         ],
         default: 'general'
@@ -104,145 +100,136 @@ const shopItemSchema = new mongoose.Schema({
 
         permission: String,
 
-        // Mascotas
-        petId: { type: String },
-        species: { type: String },
-        emoji: { type: String },
-        rarity: { type: String },    // rareza
-        baseStats: { type: Object },   // stats base (xpBoost, coinsBoost, luckBoost)
-        abilities: { type: Object },   // habilidades desbloqueables
-        level: { type: Number, default: 1 }, // nivel inicial
-
         // Custom
         command: String
     },
     requirements: {
-    minLevel: {
-        type: Number,
-        default: 0
+        minLevel: {
+            type: Number,
+            default: 0
+        },
+        maxLevel: {
+            type: Number,
+            default: null
+        },
+        requiredItems: [{
+            itemId: String,
+            quantity: Number
+        }],
+        requiredRoles: [String],
+        requiredPermissions: [String]
     },
-    maxLevel: {
-        type: Number,
-        default: null
-    },
-    requiredItems: [{
-        itemId: String,
-        quantity: Number
-    }],
-    requiredRoles: [String],
-    requiredPermissions: [String]
-},
     effects: {
-    xpMultiplier: {
-        type: Number,
-        default: 1.0
+        xpMultiplier: {
+            type: Number,
+            default: 1.0
+        },
+        xpBonus: {
+            type: Number,
+            default: 0
+        },
+        currencyMultiplier: {
+            type: Number,
+            default: 1.0
+        },
+        specialEffect: String
     },
-    xpBonus: {
-        type: Number,
-        default: 0
-    },
-    currencyMultiplier: {
-        type: Number,
-        default: 1.0
-    },
-    specialEffect: String
-},
     cooldown: {
-    type: Number,
-    default: 0
-},
+        type: Number,
+        default: 0
+    },
     purchaseLimit: {
-    perUser: {
-        type: Number,
-        default: -1
+        perUser: {
+            type: Number,
+            default: -1
+        },
+        perDay: {
+            type: Number,
+            default: -1
+        }
     },
-    perDay: {
-        type: Number,
-        default: -1
-    }
-},
     metadata: {
-    createdBy: String,
-    createdAt: {
-        type: Date,
-        default: Date.now
+        createdBy: String,
+        createdAt: {
+            type: Date,
+            default: Date.now
+        },
+        updatedBy: String,
+        updatedAt: {
+            type: Date,
+            default: Date.now
+        },
+        tags: [String]
     },
-    updatedBy: String,
-    updatedAt: {
-        type: Date,
-        default: Date.now
-    },
-    tags: [String]
-},
     stats: {
-    purchases: {
-        type: Number,
-        default: 0
+        purchases: {
+            type: Number,
+            default: 0
+        },
+        totalRevenue: {
+            type: Number,
+            default: 0
+        },
+        lastPurchase: Date
     },
-    totalRevenue: {
-        type: Number,
-        default: 0
-    },
-    lastPurchase: Date
-},
     isTicket: {
-    type: Boolean,
-    default: false
-},
+        type: Boolean,
+        default: false
+    },
     ticketData: {
-    giveawayUsage: {
-        type: Boolean,
-        default: false
+        giveawayUsage: {
+            type: Boolean,
+            default: false
+        },
+        ticketsPerPurchase: {
+            type: Number,
+            default: 1
+        },
+        requiredForGiveaway: {
+            type: String, // ID del sorteo específico
+            default: null
+        },
+        giveawayQuantity: {
+            type: Number, // Cantidad necesaria para entrar
+            default: 1
+        },
+        consumable: { // Si se consume al usarlo
+            type: Boolean,
+            default: true
+        },
+        stackable: { // Si se pueden acumular
+            type: Boolean,
+            default: true
+        },
+        expirationDays: {
+            type: Number,
+            default: 0 // 0 = no expira
+        }
     },
-    ticketsPerPurchase: {
-        type: Number,
-        default: 1
-    },
-    requiredForGiveaway: {
-        type: String, // ID del sorteo específico
-        default: null
-    },
-    giveawayQuantity: {
-        type: Number, // Cantidad necesaria para entrar
-        default: 1
-    },
-    consumable: { // Si se consume al usarlo
-        type: Boolean,
-        default: true
-    },
-    stackable: { // Si se pueden acumular
-        type: Boolean,
-        default: true
-    },
-    expirationDays: {
-        type: Number,
-        default: 0 // 0 = no expira
-    }
-},
     giveawayValidation: {
+        enabled: {
+            type: Boolean,
+            default: false
+        },
+        minTickets: {
+            type: Number,
+            default: 0
+        },
+        maxTickets: {
+            type: Number,
+            default: 0 // 0 = ilimitado
+        },
+        allowedGiveaways: [String], // IDs de sorteos permitidos
+        exclusiveToGiveaway: String // Solo para un sorteo específico
+    },
+    active: {
+        type: Boolean,
+        default: true
+    },
     enabled: {
         type: Boolean,
-        default: false
-    },
-    minTickets: {
-        type: Number,
-        default: 0
-    },
-    maxTickets: {
-        type: Number,
-        default: 0 // 0 = ilimitado
-    },
-    allowedGiveaways: [String], // IDs de sorteos permitidos
-    exclusiveToGiveaway: String // Solo para un sorteo específico
-},
-    active: {
-    type: Boolean,
-    default: true
-},
-    enabled: {
-    type: Boolean,
-    default: true
-}
+        default: true
+    }
 
 }, {
     timestamps: true
@@ -305,29 +292,6 @@ shopItemSchema.methods.applyEffects = async function (userLevel, member) {
     });
 
     const effects = {};
-
-    if (this.type === 'pet' && this.data?.petId) {
-        const petsManager = new PetsManager(userLevel.levelManager);
-
-        // Añadir mascota al usuario
-        await petsManager.addPet(member.guild.id, member.id, {
-            id: this.data.petId,
-            species: this.data.species,
-            level: 1,
-            xp: 0,
-            active: false
-        });
-
-        return {
-            success: true,
-            petGranted: {
-                id: this.data.petId,
-                name: PetsConfig[this.data.petId]?.name || this.name,
-                emoji: PetsConfig[this.data.petId]?.emoji || '🐾',
-                rarity: PetsConfig[this.data.petId]?.rarity || 'common'
-            }
-        };
-    }
 
 
     if (this.type === 'economy') {

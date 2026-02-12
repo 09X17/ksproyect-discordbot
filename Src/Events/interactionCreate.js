@@ -5,7 +5,6 @@ import handleShopInteraction from '../LevelSystem/Managers/ShopInteractions.js';
 import handleShopAdminInteraction from '../LevelSystem/Managers/ShopAdminInteractions.js';
 import handleConfigLevelInteraction from '../LevelSystem/Managers/LevelConfigInteractions.js';
 import handleLootboxInteraction from '../LevelSystem/Managers/LootboxInteractions.js';
-import handleDuelInteraction from '../LevelSystem/Managers/DuelsInteraction.js';
 import handleContestInteraction from '../Contest/Managers/contestinteraction.js';
 import handleTradeInteraction from "../LevelSystem/Managers/TradeInteractionHandler.js"
 import handleRankcardColorSelect from "../LevelSystem/Managers/RankCardInteractions.js"
@@ -97,8 +96,6 @@ export default {
                 // 🎁 Lootboxes
                 if (await handleLootboxInteraction(client, interaction)) return;
 
-                // ⚔️ Duels
-                if (await handleDuelInteraction(client, interaction)) return;
 
                 // Contest
                 if (await handleContestInteraction(client, interaction)) return;

@@ -14,7 +14,6 @@ import UserLevel from '../../../LevelSystem/Models/UserLevel.js';
 const SHOP_CATEGORIES = [
     { id: 'all', name: 'Todos', emoji: '<:categorias:1453081710357905551>' },
     { id: "permission", name: "Desbloquea permisos", emoji: "<:debilidad:1465843214358679694>", description: "Desbloquea pemisos como: Colores, Fondos" },
-    { id: "pet", name: "Compra Mascotas", emoji: "🐈", description: "Compra mascotas" },
     { id: 'cosmetic', name: 'Compra relacionado a juegos', emoji: '<:diamante:1453080344810229921>', description: "Compra pases, Suscipciones, Juegos" },
     { id: 'xp', name: 'Compra por experiencia', emoji: '<:xp:1453078768687255845>', description: "Compra items usando tu experiencia" },
     { id: 'economy', name: 'Compra por monedas/tokens', emoji: '<:bolsadedinero:1453079730579570931>', description: "Compra items usando monedas o tokens" },
@@ -263,7 +262,6 @@ export default class ShopSlash extends SlashCommand {
             consumable: '<:pocionmagica:1453100161508053052>',
             utility: '<:flujodefondos:1453080009919959112>',
             custom: '<:cajaregistradora:1453079878143574116>',
-            pet: "🐈",
             permission: "<:debilidad:1465843214358679694>"
         };
 
