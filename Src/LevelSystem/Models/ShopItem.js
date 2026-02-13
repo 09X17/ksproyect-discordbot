@@ -64,7 +64,7 @@ const shopItemSchema = new mongoose.Schema({
             'economy',
             'consumables',
             'roles',
-            'cosmetics',
+            'cosmetic',
             'utilities',
             "permission",
             'limited'

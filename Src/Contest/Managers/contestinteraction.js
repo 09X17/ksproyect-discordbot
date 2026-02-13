@@ -89,7 +89,7 @@ export default async function handleContestInteraction(client, interaction) {
         if (!interaction.replied && !interaction.deferred) {
             await interaction.reply({
                 content: '❌ Ocurrió un error en el sistema de concurso.',
-                flags: 64
+                flags: MessageFlags.Ephemeral
             }).catch(() => { });
         }
 
@@ -586,7 +586,7 @@ async function handleEmojiSelectMenu(client, interaction) {
 }
 
 async function handleReportModal(client, interaction) {
-    await interaction.deferReply({ flags: 64 });
+    await interaction.deferReply({ ephemeral: true });
 
     const messageId = interaction.customId.replace('contest_report_modal_', '');
     const reason = interaction.fields.getTextInputValue('reason');
@@ -716,7 +716,7 @@ async function handleViewVoters(client, interaction) {
     if (interaction.deferred || interaction.replied) {
         await interaction.followUp({
             content: '⚠️ No se pudo mostrar la lista (interacción ya usada).',
-            flags: 64
+            ephemeral: true
         }).catch(() => {});
         return true;
     }
@@ -727,7 +727,7 @@ async function handleViewVoters(client, interaction) {
     if (!entry) {
         await interaction.reply({
             content: '❌ Entrada no encontrada.',
-            flags: 64
+            ephemeral: true
         });
         return true;
     }
@@ -769,18 +769,16 @@ async function handleViewVoters(client, interaction) {
 
     await interaction.reply({
         components: [container],
-        flags: MessageFlags.IsComponentsV2 | flags: 64
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
     });
 
     return true;
 }
 
-
-
 async function safeDefer(interaction) {
-
+    
     if (interaction.customId?.startsWith('view_voters_')) return;
-
+    
     if (!interaction.deferred && !interaction.replied) {
         await interaction.deferUpdate().catch(() => { });
     }

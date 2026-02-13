@@ -1,4 +1,4 @@
-import { MessageFlags, InteractionType } from 'discord.js';
+import { MessageFlags, InteractionType, EmbedBuilder,  ButtonBuilder, ButtonStyle, ActionRowBuilder } from 'discord.js';
 
 import TicketInteractionManager from '../Tickets/Managers/TicketInteractionManager.js';
 import handleShopInteraction from '../LevelSystem/Managers/ShopInteractions.js';
@@ -6,8 +6,8 @@ import handleShopAdminInteraction from '../LevelSystem/Managers/ShopAdminInterac
 import handleConfigLevelInteraction from '../LevelSystem/Managers/LevelConfigInteractions.js';
 import handleLootboxInteraction from '../LevelSystem/Managers/LootboxInteractions.js';
 import handleContestInteraction from '../Contest/Managers/contestinteraction.js';
-import handleTradeInteraction from "../LevelSystem/Managers/TradeInteractionHandler.js"
 import handleRankcardColorSelect from "../LevelSystem/Managers/RankCardInteractions.js"
+import handleTradeInteraction from "../LevelSystem/Managers/TradeInteractionHandler.js"
 import handleLootboxOpen from '../LevelSystem/Managers/InventoryInteractions.js';
 import JobsConfig from '../LevelSystem/Managers/JobsConfig.js';
 import handleEmbedEditorInteraction from '../Embed/Managers/handleEmbedEditorInteraction.js';
@@ -51,12 +51,14 @@ export default {
 
                 // ⚙️ Level Config
                 if (await handleConfigLevelInteraction(client, interaction)) return;
-
-                if (await handleContestInteraction(client, interaction)) return;
-
+                
+                // contest
+                if(await handleContestInteraction(client, interaction)) return;
+                
                 // Trade
                 if (await handleTradeInteraction(client, interaction)) return;
-
+                                
+                
                 if (await handleEmbedEditorInteraction(client, interaction)) return;
 
                 // 2️⃣ Sistema de embeds dinámicos
@@ -75,7 +77,7 @@ export default {
 
                 // 🎟️ Tickets
                 if (await ticketInteractionManager?.handleTicketInteraction(interaction)) return;
-
+                
                 if (await handleEmbedEditorInteraction(client, interaction)) return;
 
                 // 2️⃣ Sistema de embeds dinámicos
@@ -95,20 +97,19 @@ export default {
 
                 // 🎁 Lootboxes
                 if (await handleLootboxInteraction(client, interaction)) return;
-
-
+                
                 // Contest
-                if (await handleContestInteraction(client, interaction)) return;
+                if(await handleContestInteraction(client, interaction)) return;
 
                 // Trade
                 if (await handleTradeInteraction(client, interaction)) return;
-
+                
                 // rankcard
                 if (await handleRankcardColorSelect(client, interaction)) return;
-
+                
                 // lootboxx
-                if (await handleLootboxOpen(client, interaction)) return;
-
+                if(await handleLootboxOpen(client, interaction)) return;
+                
                 if (interaction.customId.startsWith('job_')) {
                     const jobs = Object.values(JobsConfig);
                     const [, action, pageStr] = interaction.customId.split('_');
@@ -150,7 +151,7 @@ export default {
 
                 // 🎟️ Tickets
                 if (await ticketInteractionManager?.handleTicketInteraction(interaction)) return;
-
+                
                 if (await handleEmbedEditorInteraction(client, interaction)) return;
 
                 // 2️⃣ Sistema de embeds dinámicos
@@ -164,19 +165,20 @@ export default {
 
                 // ⚙️ Level Config
                 if (await handleConfigLevelInteraction(client, interaction)) return;
-
+                
+                // Contest
+                if(await handleContestInteraction(client, interaction)) return;
+                
                 // Trade
                 if (await handleTradeInteraction(client, interaction)) return;
-
-                if (await handleContestInteraction(client, interaction)) return;
-
-                // rankcard
+                
+                 // rankcard
                 if (await handleRankcardColorSelect(client, interaction)) return;
-
+                
                 // lootboxx
                 if (await handleLootboxOpen(client, interaction)) return;
 
-                // ===== JOIN =====
+                                // ===== JOIN =====
                 if (interaction.customId.startsWith('job_join_')) {
                     if (interaction.user.id !== interaction.customId.split('_')[2]) {
                         return interaction.reply({ content: '❌ Esto no es para ti.', flags: 64 });
@@ -247,8 +249,7 @@ export default {
                         components: []
                     });
                 }
-
-
+                
             }
 
             // ================================
@@ -292,7 +293,7 @@ async function handleEmbedModal(client, interaction) {
         if (!embedManager) {
             return interaction.reply({
                 content: '❌ El sistema de embeds no está disponible.',
-                flags: 64
+                flags: MessageFlags.Ephemeral
             });
         }
 
@@ -302,7 +303,7 @@ async function handleEmbedModal(client, interaction) {
         client.logger.error('Error en handleEmbedModal:', error);
         await interaction.reply({
             content: '❌ Error procesando el formulario.',
-            flags: 64
+            flags: MessageFlags.Ephemeral
         });
     }
 }
@@ -315,7 +316,7 @@ async function handleSlashCommand(client, interaction) {
     if (!command) {
         return interaction.reply({
             content: '❌ Comando no disponible.',
-            flags: 64
+            flags: MessageFlags.Ephemeral
         });
     }
 
@@ -412,16 +413,15 @@ function handleInteractionError(interaction, error) {
 
     const payload = {
         content: '❌ Ocurrió un error al procesar la interacción.',
-        flags: 64
+        flags: MessageFlags.Ephemeral
     };
 
     if (interaction.replied || interaction.deferred) {
-        interaction.followUp(payload).catch(() => { });
+        interaction.followUp(payload).catch(() => {});
     } else {
-        interaction.reply(payload).catch(() => { });
+        interaction.reply(payload).catch(() => {});
     }
 }
-
 
 function buildJobEmbed(job, page, total) {
     const cooldownMin = Math.floor(job.cooldown / 60000);
@@ -469,4 +469,5 @@ function buildJobEmbed(job, page, total) {
         )
         .setFooter({ text: `Trabajo ${page + 1} de ${total}` });
 }
+
 

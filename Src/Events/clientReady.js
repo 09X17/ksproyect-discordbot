@@ -1,4 +1,4 @@
-import { startTwitchAlerts } from "../Structures/twitchAlert.js";
+
 
 export default {
     name: 'clientReady',

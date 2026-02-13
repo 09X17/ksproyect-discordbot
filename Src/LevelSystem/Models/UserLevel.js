@@ -586,7 +586,7 @@ userLevelSchema.methods.purchaseItem = async function (item, quantity = 1) {
             }
 
             effects.success = true;
-        }
+        } 
 
         else {
             effects = await this.applyItemEffects(item, quantity);
@@ -597,7 +597,7 @@ userLevelSchema.methods.purchaseItem = async function (item, quantity = 1) {
         throw new Error(`Error aplicando efectos del item: ${err.message}`);
     }
 
-    const shouldAddToInventory = !['permission', 'role'].includes(item.type);
+    const shouldAddToInventory = !['permission', 'role', "cosmetic"].includes(item.type);
 
     if (shouldAddToInventory) {
         this.inventory ??= [];

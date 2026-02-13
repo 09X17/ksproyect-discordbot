@@ -27,6 +27,16 @@ export default class RankCardSlash extends SlashCommand {
                             { name: 'Avatar del servidor', value: 'server' },
                             { name: 'Avatar global', value: 'global' }
                         )
+                )
+                .addStringOption(option =>
+                    option
+                        .setName('estilo')
+                        .setDescription('Estilo de la tarjeta de rango')
+                        .setRequired(false)
+                        .addChoices(
+                            { name: '🎨 Clásico (horizontal)', value: 'default' },
+                            { name: '🎮 Perfil de arena (vertical)', value: 'game' }
+                        )
                 ),
             cooldown: 5,
             category: 'levels',
@@ -39,8 +49,7 @@ export default class RankCardSlash extends SlashCommand {
     }
 
     async execute(client, interaction) {
-        //        await interaction.deferReply();
-        await interaction.reply({ content: '✨ Generando tu RankCard... Esto puede llevar unos segundos!'});
+        await interaction.reply({ content: '✨ Generando tu RankCard... Esto puede llevar unos segundos!' });
 
         try {
             const targetUser =
@@ -48,6 +57,9 @@ export default class RankCardSlash extends SlashCommand {
 
             const avatarType =
                 interaction.options.getString('avatar') || 'server';
+
+            const layout =
+                interaction.options.getString('estilo') || 'default'; // por defecto clásico
 
             const targetMember =
                 await interaction.guild.members
@@ -154,11 +166,10 @@ export default class RankCardSlash extends SlashCommand {
                 guildId
             };
 
-
             // =========================
-            // Generar RankCard
+            // Generar RankCard con el estilo elegido
             // =========================
-            const cardGenerator = new RankCardGenerator();
+            const cardGenerator = new RankCardGenerator({ layout }); // 👈 aquí pasamos el layout
             const imageBuffer = await cardGenerator.generate(cardData);
 
             const attachmentName =
@@ -184,7 +195,7 @@ export default class RankCardSlash extends SlashCommand {
     }
 
     // =========================
-    // BADGES
+    // BADGES (opcional, se pueden eliminar si no se usan)
     // =========================
     getUserBadges(userLevel, rank) {
         const badges = [];

@@ -529,9 +529,7 @@ export default async function ShopAdminInteractions(client, interaction) {
                     badge: 'badge',
                     title: 'title',
                     economy: 'economy',
-
                     permission: 'cosmetics', // 🔥 permisos = cosméticos
-
                     custom: 'general'
                 };
 
