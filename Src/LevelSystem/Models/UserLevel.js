@@ -528,38 +528,82 @@ userLevelSchema.methods._spendCoinsInternal = function (amount, description, sou
 };
 
 userLevelSchema.methods.purchaseItem = async function (item, quantity = 1) {
-    const now = new Date();
-    let totalPrice = item.price * quantity;
 
-    if (item.currency === 'coins') {
-        if (this.coins < totalPrice) throw new Error('Monedas insuficientes');
-        this._spendCoinsInternal(totalPrice, `Compra: ${item.name} x${quantity}`, 'shop');
-    } else if (item.currency === 'tokens') {
-        if (this.tokens < totalPrice) throw new Error('Tokens insuficientes');
-        this.tokens -= totalPrice;
-    } else if (item.currency === 'xp') {
-        if (this.xp < totalPrice) throw new Error('XP insuficiente');
-        this.xp -= totalPrice;
-        const newLevel = await this.calculateLevel();
-        const leveledDown = newLevel < this.level;
-        if (leveledDown) this.level = newLevel;
+    const now = new Date();
+    const cost = item.cost || {};
+
+    const totalCoins = (cost.coins || 0) * quantity;
+    const totalTokens = (cost.tokens || 0) * quantity;
+    const totalXP = (cost.xp || 0) * quantity;
+
+    /* =========================
+       VALIDAR BALANCE
+    ========================= */
+
+    if (this.coins < totalCoins)
+        throw new Error('Monedas insuficientes');
+
+    if (this.tokens < totalTokens)
+        throw new Error('Tokens insuficientes');
+
+    if (this.xp < totalXP)
+        throw new Error('XP insuficiente');
+
+    /* =========================
+       DESCONTAR
+    ========================= */
+
+    if (totalCoins > 0) {
+        this._spendCoinsInternal(
+            totalCoins,
+            `Compra: ${item.name} x${quantity}`,
+            'shop'
+        );
     }
+
+    if (totalTokens > 0) {
+        this.tokens -= totalTokens;
+    }
+
+    if (totalXP > 0) {
+        this.xp -= totalXP;
+
+        const newLevel = await this.calculateLevel();
+        if (newLevel < this.level) {
+            this.level = newLevel;
+        }
+    }
+
+    /* =========================
+       HISTORIAL
+    ========================= */
 
     this.purchaseHistory.push({
         itemId: item._id,
         itemName: item.name,
-        price: item.price,
-        currency: item.currency,
+        cost: {
+            coins: totalCoins,
+            tokens: totalTokens,
+            xp: totalXP
+        },
         quantity,
         purchasedAt: now
     });
 
+    /* =========================
+       APLICAR EFECTOS
+    ========================= */
+
     let effects = {};
 
     try {
+
         if (item.type === 'boost_user' || item.type === 'boost_server') {
-            const multiplier = await this.activateBoostFromItem(item, quantity);
-            effects = { boost: { multiplier } };
+
+            const multiplier =
+                await this.activateBoostFromItem(item, quantity);
+
+            effects.boost = { multiplier };
         }
 
         else if (item.type === 'permission') {
@@ -574,34 +618,35 @@ userLevelSchema.methods.purchaseItem = async function (item, quantity = 1) {
             if (permission) {
                 this.customization.permissions[permission] = true;
                 effects.permissionGranted = permission;
-
-                this.markModified('customization.permissions');
             }
 
             if (hexColor && /^#([0-9A-F]{6})$/i.test(hexColor)) {
                 this.customization.active.accentColor = hexColor;
                 effects.accentColorApplied = hexColor;
-
-                this.markModified('customization.active');
             }
-
-            effects.success = true;
-        } 
+        }
 
         else {
             effects = await this.applyItemEffects(item, quantity);
         }
 
     } catch (err) {
-        console.error('❌ Error aplicando efectos:', err);
         throw new Error(`Error aplicando efectos del item: ${err.message}`);
     }
 
-    const shouldAddToInventory = !['permission', 'role', "cosmetic"].includes(item.type);
+    /* =========================
+       INVENTARIO (solo tipos válidos)
+    ========================= */
 
-    if (shouldAddToInventory) {
+    const inventoryTypes = ['consumable', 'utility'];
+
+    if (inventoryTypes.includes(item.type)) {
+
         this.inventory ??= [];
-        const existing = this.inventory.find(i => i.itemId?.toString() === item._id.toString());
+
+        const existing = this.inventory.find(
+            i => i.itemId?.toString() === item._id.toString()
+        );
 
         if (existing) {
             existing.quantity += quantity;
@@ -613,10 +658,20 @@ userLevelSchema.methods.purchaseItem = async function (item, quantity = 1) {
                 acquiredAt: now
             });
         }
-    } else {
     }
 
+    /* =========================
+       ACTUALIZAR STATS DEL ITEM
+    ========================= */
+
+    item.registerPurchase(quantity);
+
+    /* =========================
+       GUARDAR
+    ========================= */
+
     await this.save();
+    await item.save();
 
     return {
         success: true,
@@ -631,47 +686,55 @@ userLevelSchema.methods.purchaseItem = async function (item, quantity = 1) {
 };
 
 userLevelSchema.methods.applyItemEffects = function (item, quantity = 1) {
+
     const effects = {};
 
     switch (item.type) {
+
         case 'xp': {
             const xpAmount = (item.data?.xpAmount || 0) * quantity;
+
             if (xpAmount > 0) {
                 this.xp += xpAmount;
                 this.totalXP += xpAmount;
                 this.updateStats(xpAmount, 'item_purchase');
                 effects.xpGained = xpAmount;
             }
+
             break;
         }
 
         case 'economy': {
+
             const coins = (item.data?.coinsAmount || 0) * quantity;
             const tokens = (item.data?.tokensAmount || 0) * quantity;
             const xp = (item.data?.xpAmount || 0) * quantity;
 
             if (coins > 0) this.coins += coins;
             if (tokens > 0) this.tokens += tokens;
+
             if (xp > 0) {
                 this.xp += xp;
                 this.totalXP += xp;
                 this.updateStats(xp, 'item_purchase');
             }
 
-            effects.coinsGained = coins;
-            effects.tokensGained = tokens;
-            effects.xpGained = xp;
+            if (coins > 0) effects.coinsGained = coins;
+            if (tokens > 0) effects.tokensGained = tokens;
+            if (xp > 0) effects.xpGained = xp;
+
             break;
         }
 
         case 'role': {
-            effects.role = item.data?.roleId;
+            effects.roleGranted = item.data?.roleId;
             break;
         }
     }
 
     return effects;
 };
+
 
 userLevelSchema.methods.clearAllBoosts = async function () {
     this.activeItems = this.activeItems.filter(item =>

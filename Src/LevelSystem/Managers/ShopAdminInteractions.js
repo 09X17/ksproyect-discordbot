@@ -7,24 +7,19 @@ import {
     ButtonStyle,
     StringSelectMenuBuilder,
     RoleSelectMenuBuilder,
-    EmbedBuilder,
-    MessageFlags
+    EmbedBuilder
 } from 'discord.js';
 
 import crypto from 'crypto';
 import ShopItem from '../Models/ShopItem.js';
 import ShopConfig from '../Models/ShopConfig.js';
 
-// ===================================================
-// CACHE MEJORADO
-// ===================================================
-const USER_SESSIONS = new Map(); // { userId: { sid, itemId, action, timestamp } }
+const USER_SESSIONS = new Map();
 
-// Limpiar sesiones antiguas cada 10 minutos
 setInterval(() => {
     const now = Date.now();
     for (const [userId, session] of USER_SESSIONS.entries()) {
-        if (now - session.timestamp > 1000 * 60 * 10) { // 10 minutos
+        if (now - session.timestamp > 1000 * 60 * 10) {
             USER_SESSIONS.delete(userId);
         }
     }
@@ -33,14 +28,13 @@ setInterval(() => {
 const shortId = () => crypto.randomBytes(5).toString('hex');
 const safe = (v, max) => String(v ?? '').slice(0, max);
 
-// ===================================================
-// HELPER FUNCTIONS
-// ===================================================
 async function sendLog(interaction, embed) {
     const config = await ShopConfig.findOne({ guildId: interaction.guild.id });
     if (!config?.logChannelId) return;
+
     const channel = interaction.guild.channels.cache.get(config.logChannelId);
     if (!channel) return;
+
     channel.send({ embeds: [embed] }).catch(() => { });
 }
 
@@ -48,7 +42,7 @@ function saveUserSession(userId, sid, itemId = null, action = 'edit') {
     USER_SESSIONS.set(userId, {
         sid,
         itemId,
-        action, // 'create' o 'edit'
+        action,
         timestamp: Date.now()
     });
 }
@@ -57,16 +51,26 @@ function getUserSession(userId) {
     return USER_SESSIONS.get(userId);
 }
 
+function formatCost(cost = {}) {
+    const parts = [];
+    if (cost.coins > 0) parts.push(`${cost.coins} Coins`);
+    if (cost.tokens > 0) parts.push(`${cost.tokens} Tokens`);
+    if (cost.xp > 0) parts.push(`${cost.xp} XP`);
+    return parts.join(' + ') || 'Gratis';
+}
+
 // ===================================================
 // MODAL BUILDERS
 // ===================================================
 function buildBasicModal(customId, title, item = {}) {
-    const modalTitle = String(title || 'Configurar Item').slice(0, 45);
+
+    const cost = item.cost || {};
 
     return new ModalBuilder()
         .setCustomId(customId)
-        .setTitle(modalTitle)
+        .setTitle(String(title).slice(0, 45))
         .addComponents(
+
             new ActionRowBuilder().addComponents(
                 new TextInputBuilder()
                     .setCustomId('name')
@@ -74,8 +78,8 @@ function buildBasicModal(customId, title, item = {}) {
                     .setStyle(TextInputStyle.Short)
                     .setRequired(true)
                     .setValue(safe(item.name, 100))
-                    .setMaxLength(100)
             ),
+
             new ActionRowBuilder().addComponents(
                 new TextInputBuilder()
                     .setCustomId('description')
@@ -83,34 +87,33 @@ function buildBasicModal(customId, title, item = {}) {
                     .setStyle(TextInputStyle.Paragraph)
                     .setRequired(false)
                     .setValue(safe(item.description, 200))
-                    .setMaxLength(200)
             ),
+
             new ActionRowBuilder().addComponents(
                 new TextInputBuilder()
-                    .setCustomId('price')
-                    .setLabel('Precio')
+                    .setCustomId('cost_coins')
+                    .setLabel('Costo en Coins')
                     .setStyle(TextInputStyle.Short)
-                    .setRequired(true)
-                    .setValue(item.price ? String(item.price) : '0')
-                    .setMaxLength(10)
+                    .setRequired(false)
+                    .setValue(cost.coins ? String(cost.coins) : '0')
             ),
+
             new ActionRowBuilder().addComponents(
                 new TextInputBuilder()
-                    .setCustomId('currency')
-                    .setLabel('Moneda (xp, coins, tokens)')
+                    .setCustomId('cost_tokens')
+                    .setLabel('Costo en Tokens')
                     .setStyle(TextInputStyle.Short)
-                    .setRequired(true)
-                    .setValue(safe(item.currency, 20))
-                    .setMaxLength(20)
+                    .setRequired(false)
+                    .setValue(cost.tokens ? String(cost.tokens) : '0')
             ),
+
             new ActionRowBuilder().addComponents(
                 new TextInputBuilder()
-                    .setCustomId('type')
-                    .setLabel('Tipo (role, boost_user, badge, etc)')
+                    .setCustomId('cost_xp')
+                    .setLabel('Costo en XP')
                     .setStyle(TextInputStyle.Short)
-                    .setRequired(true)
-                    .setValue(safe(item.type, 30))
-                    .setMaxLength(30)
+                    .setRequired(false)
+                    .setValue(cost.xp ? String(cost.xp) : '0')
             )
         );
 }
@@ -409,7 +412,9 @@ export default async function ShopAdminInteractions(client, interaction) {
     // --------------------------
     // SUBMIT DE MODALES
     // --------------------------
-    if (interaction.isModalSubmit() && interaction.customId.startsWith('shopadmin_modal_')) {
+    if (interaction.isModalSubmit() &&
+        interaction.customId.startsWith('shopadmin_modal_')) {
+
         const sid = interaction.customId.split('_').pop();
         const session = getUserSession(userId);
 
@@ -423,41 +428,51 @@ export default async function ShopAdminInteractions(client, interaction) {
 
         const { itemId, action } = session;
 
-        // Determinar qué item estamos manejando
         let item;
+
+        /* =========================
+           CREAR O EDITAR
+        ========================= */
+
         if (action === 'create') {
-            // Crear nuevo item
+
             item = new ShopItem({
                 guildId,
                 name: 'Nuevo Item',
                 description: '',
-                price: 0,
-                currency: 'coins',
                 type: 'custom',
+                category: 'general',
+                cost: { coins: 0, tokens: 0, xp: 0 },
                 stock: -1,
                 data: {},
-                enabled: true
+                active: true
             });
+
         } else if (action === 'edit' && itemId) {
-            // Editar item existente
+
             item = await ShopItem.findById(itemId);
+
             if (!item) {
                 return interaction.reply({
                     content: '❌ Item no encontrado',
                     flags: 64
                 });
             }
+
         } else {
+
             return interaction.reply({
                 content: '❌ Error en la sesión',
                 flags: 64
             });
         }
 
-        // Obtener todos los campos posibles del modal
         const fields = interaction.fields.fields;
 
-        // Actualizar campos básicos (si existen en el modal)
+        /* =========================
+           CAMPOS BÁSICOS
+        ========================= */
+
         try {
             const name = fields.get('name')?.value;
             if (name !== undefined) item.name = name;
@@ -468,20 +483,41 @@ export default async function ShopAdminInteractions(client, interaction) {
             if (description !== undefined) item.description = description;
         } catch (e) { }
 
-        try {
-            const price = fields.get('price')?.value;
-            if (price !== undefined) item.price = Number(price) || 0;
-        } catch (e) { }
+        /* =========================
+           COSTO MULTI-MONEDA
+        ========================= */
 
         try {
-            const currency = fields.get('currency')?.value;
-            if (currency !== undefined) item.currency = currency;
+
+            const costCoins = Number(fields.get('cost_coins')?.value || 0);
+            const costTokens = Number(fields.get('cost_tokens')?.value || 0);
+            const costXP = Number(fields.get('cost_xp')?.value || 0);
+
+            if (costCoins < 0 || costTokens < 0 || costXP < 0) {
+                return interaction.reply({
+                    content: '❌ El costo no puede ser negativo.',
+                    flags: 64
+                });
+            }
+
+            item.cost = {
+                coins: costCoins,
+                tokens: costTokens,
+                xp: costXP
+            };
+
         } catch (e) { }
 
+        /* =========================
+           TIPO + CATEGORÍA
+        ========================= */
+
         try {
+
             const rawType = fields.get('type')?.value;
 
             if (rawType !== undefined) {
+
                 const normalizedType = rawType.toLowerCase().trim();
 
                 const TYPE_MAP = {
@@ -511,38 +547,40 @@ export default async function ShopAdminInteractions(client, interaction) {
                     badge: 'badge',
                     title: 'title',
 
-                    permission: 'permission', // 🔥 AÑADIDO
-
+                    permission: 'permission',
                     custom: 'custom'
                 };
 
                 item.type = TYPE_MAP[normalizedType] ?? 'custom';
 
                 const CATEGORY_MAP = {
-                    cosmetic: 'cosmetics',
+                    cosmetic: 'cosmetic',
                     consumable: 'consumables',
                     utility: 'utilities',
                     role: 'roles',
                     boost_user: 'boosts_user',
                     boost_server: 'boosts_server',
                     xp: 'xp',
-                    badge: 'badge',
-                    title: 'title',
+                    badge: 'general',
+                    title: 'general',
                     economy: 'economy',
-                    permission: 'cosmetics', // 🔥 permisos = cosméticos
+                    permission: 'permission',
                     custom: 'general'
                 };
 
-                item.category = CATEGORY_MAP[item.type];
+                item.category = CATEGORY_MAP[item.type] ?? 'general';
             }
 
         } catch (e) { }
 
-        // Actualizar campos específicos de boost (si existen)
+        /* =========================
+           CAMPOS DE BOOST
+        ========================= */
+
         try {
             const duration = fields.get('duration')?.value;
             if (duration !== undefined) {
-                if (!item.data) item.data = {};
+                item.data ??= {};
                 item.data.duration = Number(duration) || 3600;
             }
         } catch (e) { }
@@ -550,7 +588,7 @@ export default async function ShopAdminInteractions(client, interaction) {
         try {
             const multiplier = fields.get('multiplier')?.value;
             if (multiplier !== undefined) {
-                if (!item.data) item.data = {};
+                item.data ??= {};
                 item.data.multiplier = Number(multiplier) || 1.0;
             }
         } catch (e) { }
@@ -558,32 +596,50 @@ export default async function ShopAdminInteractions(client, interaction) {
         try {
             const stackable = fields.get('stackable')?.value;
             if (stackable !== undefined) {
-                if (!item.data) item.data = {};
+                item.data ??= {};
                 item.data.stackable = stackable === 'true';
             }
         } catch (e) { }
 
-        // Guardar el item
+        /* =========================
+           GUARDAR
+        ========================= */
+
         await item.save();
 
-        // Enviar log
-        await sendLog(interaction, new EmbedBuilder()
-            .setColor(action === 'create' ? '#3498db' : '#2ECC71')
-            .setTitle(action === 'create' ? '📦 Item creado' : '✏️ Item editado')
-            .addFields(
-                { name: 'Item', value: item.name, inline: true },
-                { name: 'Tipo', value: item.type, inline: true },
-                { name: 'Precio', value: `${item.price} ${item.currency}`, inline: true },
-                { name: 'Admin', value: interaction.user.tag, inline: false }
-            )
-            .setTimestamp()
+        /* =========================
+           LOG
+        ========================= */
+
+        const formatCost = (cost = {}) => {
+            const parts = [];
+            if (cost.coins > 0) parts.push(`${cost.coins} Coins`);
+            if (cost.tokens > 0) parts.push(`${cost.tokens} Tokens`);
+            if (cost.xp > 0) parts.push(`${cost.xp} XP`);
+            return parts.join(' + ') || 'Gratis';
+        };
+
+        await sendLog(interaction,
+            new EmbedBuilder()
+                .setColor(action === 'create' ? '#3498db' : '#2ECC71')
+                .setTitle(action === 'create'
+                    ? '📦 Item creado'
+                    : '✏️ Item editado')
+                .addFields(
+                    { name: 'Item', value: item.name, inline: true },
+                    { name: 'Tipo', value: item.type, inline: true },
+                    { name: 'Costo', value: formatCost(item.cost), inline: true },
+                    { name: 'Admin', value: interaction.user.tag }
+                )
+                .setTimestamp()
         );
 
-        // Limpiar sesión
         USER_SESSIONS.delete(userId);
 
         return interaction.reply({
-            content: `✅ Item **${item.name}** ${action === 'create' ? 'creado' : 'actualizado'} correctamente.`,
+            content:
+                `✅ Item **${item.name}** ` +
+                `${action === 'create' ? 'creado' : 'actualizado'} correctamente.`,
             flags: 64
         });
     }
