@@ -4,7 +4,8 @@ import {
     ActionRowBuilder,
     StringSelectMenuBuilder,
     ButtonBuilder,
-    ButtonStyle, PermissionFlagsBits
+    ButtonStyle, PermissionFlagsBits,
+    UserContextMenuCommandInteraction
 } from 'discord.js';
 
 import SlashCommand from '../../../Structures/SlashCommand.js';
@@ -79,17 +80,14 @@ export default class ShopSlash extends SlashCommand {
         }
 
         const items = await ShopItem.find(query)
-            .sort({ price: 1 })
+            .sort({ 'cost.coins': 1, 'cost.tokens': 1, 'cost.xp': 1 })
             .limit(15);
 
         const embed = this.buildShopEmbed(interaction, user, items, category);
-
-        // SOLO enviar botones si NO es la vista principal (categoría "all")
         let components = [];
         if (category !== 'all') {
-            components = this.buildShopComponents(items, category);
+            components = this.buildShopComponents(items, category, user);
         } else {
-            // Opcional: solo el menú de categorías
             components = [
                 new ActionRowBuilder().addComponents(
                     new StringSelectMenuBuilder()
@@ -126,17 +124,28 @@ export default class ShopSlash extends SlashCommand {
         }
 
         for (const item of items) {
+
+            const canAfford = this.canUserAfford(user, item.cost);
+
+            const statusIcon = canAfford ? '<:founds:1471959862052257864>' : '<:no_founds:1471959819354116287>';
+            const badge = canAfford ? '' : '**INSUFICIENTE**';
+
             const itemInfo =
-                `\`ITEM:\` ${this.getItemEmoji(item.type)} **${item.name.toUpperCase()}**\n` +
-                `\`PRECIO: ${item.price} ${item.currency.toUpperCase()}\` **|** ${item.stock === -1 ? '\`INFINITO\` <:infinito:1453083165521350776>' : `\`STOCK: ${item.stock}\``}\n` +
-                `<:flechaderecha:1455684486938362010>\`DESCRIPCIÓN:\` ${item.description || 'Sin descripción'}`;
+                `${statusIcon} ${this.getItemEmoji(item.type)} **${item.name.toUpperCase()}**${badge}\n` +
+                `\`COSTO:\` ${this.formatCost(item.cost)} **|** ${item.stock === -1
+                    ? '`INFINITO` ♾️'
+                    : `\`STOCK: ${item.stock}\``
+                }\n` +
+                `\`DESCRIPCIÓN:\` ${item.description || 'Sin descripción'}`;
 
             embed.addFields({
-                name: `‎`,
+                name: '‎',
                 value: itemInfo,
                 inline: true
             });
         }
+
+
 
         return embed;
     }
@@ -146,7 +155,7 @@ export default class ShopSlash extends SlashCommand {
         return category ? category.name : 'Todos';
     }
 
-    buildShopComponents(items, category) {
+    buildShopComponents(items, category, user) {
         const components = [];
         components.push(
             new ActionRowBuilder().addComponents(
@@ -169,14 +178,19 @@ export default class ShopSlash extends SlashCommand {
             const row = new ActionRowBuilder();
 
             for (const item of rowItems) {
+
+                const canAfford = this.canUserAfford(user, item.cost);
+
                 row.addComponents(
                     new ButtonBuilder()
                         .setCustomId(`shop_buy_${item._id}`)
                         .setLabel(item.name.slice(0, 10).toUpperCase())
                         .setEmoji(this.getItemEmoji(item.type))
-                        .setStyle(ButtonStyle.Secondary)
+                        .setStyle(canAfford ? ButtonStyle.Secondary : ButtonStyle.Danger)
+                        .setDisabled(!canAfford)
                 );
             }
+
 
             components.push(row);
         }
@@ -211,7 +225,7 @@ export default class ShopSlash extends SlashCommand {
                                 label: item.name.slice(0, 25),
                                 value: item._id.toString(),
                                 emoji: this.getItemEmoji(item.type),
-                                description: this.formatPrice(item.price, item.currency)
+                                description: this.formatCost(item.cost)
                             }))
                         )
                 )
@@ -229,25 +243,26 @@ export default class ShopSlash extends SlashCommand {
         const item = await ShopItem.findById(itemId);
         if (!item) return { error: 'El item no existe.' };
 
-        if (item.currency === 'coins' && user.coins < item.price)
-            return { error: 'Monedas insuficientes.' };
-
         if (item.stock === 0)
             return { error: 'Item agotado.' };
 
-        await user.purchaseItem(item, 1);
-
-        if (item.stock > 0) {
-            item.stock--;
-            await item.save();
+        try {
+            await user.purchaseItem(item, 1);
+            return { success: item.name };
+        } catch (err) {
+            return { error: err.message };
         }
-
-        return { success: item.name };
     }
 
-    formatPrice(price, currency) {
-        return `${price} ${currency}`;
+
+    formatCost(cost = {}) {
+        const parts = [];
+        if (cost.coins > 0) parts.push(`${cost.coins} Coins`);
+        if (cost.tokens > 0) parts.push(`${cost.tokens} Tokens`);
+        if (cost.xp > 0) parts.push(`${cost.xp} XP`);
+        return parts.join(' + ') || 'Gratis';
     }
+
 
     getItemEmoji(type) {
         const map = {
@@ -267,6 +282,20 @@ export default class ShopSlash extends SlashCommand {
 
         return map[type] ?? '<:cajaregistradora:1453079878143574116>';
     }
+
+    canUserAfford(user, cost = {}) {
+
+        const coinsNeeded = cost.coins || 0;
+        const tokensNeeded = cost.tokens || 0;
+        const xpNeeded = cost.xp || 0;
+
+        if (user.coins < coinsNeeded) return false;
+        if (user.tokens < tokensNeeded) return false;
+        if (user.xp < xpNeeded) return false;
+
+        return true;
+    }
+
 
 
 }

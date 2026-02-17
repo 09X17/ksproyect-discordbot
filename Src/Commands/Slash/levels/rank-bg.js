@@ -112,12 +112,14 @@ export default class RankBackgroundSet extends SlashCommand {
             const colorItems = await ShopItem.find({
                 guildId,
                 type: 'permission',
-                'data.permission': { $in: userColorPermissions }
+                'data.permission': {
+                    $in: userColorPermissions.map(p => new RegExp(`^${p}$`, 'i'))
+                }
             });
 
             // 🔹 Filtrar los colores que el usuario tiene permiso
             const available = colorItems.filter(item =>
-                userLevel.customization.permissions?.[item.data.permission]
+                userLevel.customization.permissions?.[item.data.permission] === true
             );
 
             if (!available.length) {
@@ -142,7 +144,7 @@ export default class RankBackgroundSet extends SlashCommand {
                     }))
                 );
 
-        //    console.log(options)
+            //    console.log(options)
 
             const row = new ActionRowBuilder().addComponents(select);
 

@@ -618,11 +618,13 @@ userLevelSchema.methods.purchaseItem = async function (item, quantity = 1) {
             if (permission) {
                 this.customization.permissions[permission] = true;
                 effects.permissionGranted = permission;
+                this.markModified('customization.permissions');
             }
 
             if (hexColor && /^#([0-9A-F]{6})$/i.test(hexColor)) {
                 this.customization.active.accentColor = hexColor;
                 effects.accentColorApplied = hexColor;
+                this.markModified('customization.active');
             }
         }
 
@@ -1046,7 +1048,7 @@ userLevelSchema.methods.joinJob = function (jobId, { setActive = true } = {}) {
             xpEarned: 0,
             fails: 0
         },
-        perks: [], 
+        perks: [],
         isIllegal: jobConfig.illegal || false,
         joinedAt: new Date()
     });

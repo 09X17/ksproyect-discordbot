@@ -2,12 +2,160 @@ import {
     EmbedBuilder,
     ActionRowBuilder,
     ButtonBuilder,
-    ButtonStyle
+    ButtonStyle, AttachmentBuilder
 } from 'discord.js';
 
 import ShopItem from '../Models/ShopItem.js';
 import UserLevel from '../Models/UserLevel.js';
+import { createCanvas } from 'canvas';
 
+function generateAccentColorPurchaseImage(itemName, hexColor) {
+    const width = 700;
+    const height = 250;
+
+    const canvas = createCanvas(width, height);
+    const ctx = canvas.getContext('2d');
+
+    // Fondo con gradiente sutil
+    const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
+    bgGradient.addColorStop(0, '#2b2d31');
+    bgGradient.addColorStop(1, '#1e1f22');
+    ctx.fillStyle = bgGradient;
+    ctx.fillRect(0, 0, width, height);
+
+    // Patrón de puntos sutiles para textura (opcional)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
+    for (let i = 0; i < width; i += 20) {
+        for (let j = 0; j < height; j += 20) {
+            ctx.fillRect(i, j, 2, 2);
+        }
+    }
+
+    // Barra superior con gradiente del color de acento
+    const topGradient = ctx.createLinearGradient(0, 0, width, 0);
+    topGradient.addColorStop(0, hexColor);
+    topGradient.addColorStop(1, adjustBrightness(hexColor, 40));
+    ctx.fillStyle = topGradient;
+    ctx.fillRect(0, 0, width, 6);
+
+    // Efecto de brillo sutil bajo la barra
+    const glowGradient = ctx.createLinearGradient(0, 6, 0, 30);
+    glowGradient.addColorStop(0, hexColorToRGBA(hexColor, 0.3));
+    glowGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = glowGradient;
+    ctx.fillRect(0, 6, width, 24);
+
+    // Ícono de checkmark (✓)
+    ctx.fillStyle = hexColor;
+    ctx.font = 'bold 32px Sans';
+    ctx.textAlign = 'left';
+    ctx.fillText('✓', 40, 65);
+
+    // Título con sombra
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 2;
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 32px Sans';
+    ctx.fillText('COMPRA EXITOSA', 85, 65);
+
+    // Reset sombra
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+
+    // Subtítulo
+    ctx.fillStyle = '#b5bac1';
+    ctx.font = '18px Sans';
+    ctx.fillText('Has adquirido:', 40, 105);
+
+    // Nombre del item con color de acento
+    ctx.fillStyle = hexColor;
+    ctx.font = 'bold 24px Sans';
+    ctx.fillText(itemName.toUpperCase(), 40, 135);
+
+    // Contenedor del color con bordes redondeados y sombra
+    const boxY = 160;
+    const boxHeight = 65;
+    const borderRadius = 12;
+
+    // Sombra del contenedor
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+    ctx.shadowBlur = 15;
+    ctx.shadowOffsetY = 4;
+
+    // Dibuja rectángulo redondeado
+    ctx.fillStyle = hexColor;
+    roundRect(ctx, 40, boxY, width - 80, boxHeight, borderRadius);
+
+    // Reset sombra
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+
+    // Gradiente sutil sobre el bloque de color
+    const colorBlockGradient = ctx.createLinearGradient(40, boxY, 40, boxY + boxHeight);
+    colorBlockGradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
+    colorBlockGradient.addColorStop(1, 'rgba(0, 0, 0, 0.1)');
+    ctx.fillStyle = colorBlockGradient;
+    roundRect(ctx, 40, boxY, width - 80, boxHeight, borderRadius);
+
+    // Texto del código HEX
+    ctx.fillStyle = getContrastColor(hexColor);
+    ctx.font = 'bold 28px Monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(hexColor.toUpperCase(), width / 2, boxY + 42);
+
+    // Pequeño label "COLOR"
+    ctx.font = '12px Sans';
+    ctx.globalAlpha = 0.7;
+    ctx.fillText('COLOR', width / 2, boxY + 20);
+    ctx.globalAlpha = 1.0;
+
+    return canvas.toBuffer();
+}
+
+// Función auxiliar para rectángulos redondeados
+function roundRect(ctx, x, y, width, height, radius) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+    ctx.fill();
+}
+
+// Ajusta el brillo de un color hex
+function adjustBrightness(hex, percent) {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const r = Math.min(255, Math.max(0, (num >> 16) + percent));
+    const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + percent));
+    const b = Math.min(255, Math.max(0, (num & 0x0000FF) + percent));
+    return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+}
+
+// Convierte hex a rgba
+function hexColorToRGBA(hex, alpha) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+// Determina si usar texto blanco o negro según el color de fondo
+function getContrastColor(hexColor) {
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    return brightness > 128 ? '#000000' : '#ffffff';
+}
 
 export default async function handleShopInteraction(client, interaction) {
 
@@ -142,40 +290,75 @@ export async function handleConfirmPurchase(interaction) {
     if (!item)
         return interaction.editReply({
             content: '❌ Este item ya no existe.',
-            components: []
+            components: [],
+            embeds: []
         });
 
     if (!user)
         return interaction.editReply({
             content: '❌ No se encontró tu perfil.',
-            components: []
+            components: [],
+            embeds: []
         });
 
     try {
 
-        if (item.type === 'permission' &&
-            user.customization?.permissions?.[item.data?.permission]) {
-
+        // Evitar recompra de permiso
+        if (
+            item.type === 'permission' &&
+            user.customization?.permissions?.[item.data?.permission]
+        ) {
             return interaction.editReply({
                 content: '⚠️ Ya tienes este permiso desbloqueado.',
-                components: []
+                components: [],
+                embeds: []
             });
         }
 
         const result = await user.purchaseItem(item, 1);
 
+        /* ==========================================================
+           🎨 SI ES PERMISSION CON ACCENT COLOR → GENERAR CANVAS
+        ========================================================== */
+
+        if (
+            item.type === 'permission' &&
+            result.effects?.accentColorApplied
+        ) {
+
+            const buffer = generateAccentColorPurchaseImage(
+                item.name,
+                result.effects.accentColorApplied
+            );
+
+            const attachment = new AttachmentBuilder(buffer, {
+                name: 'accentcolor.png'
+            });
+
+            return interaction.editReply({
+                content:
+                    `\`COSTO:\` ${formatCost(item.cost)}\n` +
+                    `<:paletadecolor:1462503084159664188> | \`SE TE APLICÓ EL COLOR, CORRECTAMENTE\``,
+                files: [attachment],
+                components: [],
+                embeds: []
+            });
+        }
+
         await interaction.editReply({
             content:
-                `✅ Compraste **${item.name}**\n` +
-                `Costo: ${formatCost(item.cost)}${formatEffects(result.effects)}`,
-            components: []
+                `\`COMPRASTE:\` **${item.name}**\n` +
+                `\`COSTO:\` ${formatCost(item.cost)}${formatEffects(result.effects)}`,
+            components: [],
+            embeds: []
         });
 
     } catch (err) {
 
         await interaction.editReply({
             content: `❌ ${err.message || 'Error al procesar la compra.'}`,
-            components: []
+            components: [],
+            embeds: []
         });
     }
 
