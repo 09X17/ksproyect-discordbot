@@ -560,7 +560,6 @@ export default class ContestManager {
                 buttons.push(votersButton);
             }
 
-            // NOTA: NO agregamos "Remover Voto" aquí porque no sabemos qué usuario está viendo
 
             const mainContainer = new ContainerBuilder()
                 .setAccentColor(0xB5FFB6)

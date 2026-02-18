@@ -2,7 +2,7 @@ export const boxTypes = {
     common: {
         name: 'Caja Común',
         color: '#7289DA',
-        emoji: '<:cajacomun:1457160969921888420>',
+        emoji: '<:cajaregalocomun:1473075376430383277>',
         spawnChance: 0.05,
         duration: 30000,
         cost: 100,
@@ -20,11 +20,10 @@ export const boxTypes = {
             { type: 'tokens', min: 4, max: 8, weight: 40 }
         ]
     },
-
     uncommon: {
         name: 'Caja Poco Común',
         color: '#2ECC71',
-        emoji: '<:pococomun:1461837881915215994>',
+        emoji: '<:cajaregalopococomun:1473075530965323887>',
         spawnChance: 0.03,
         duration: 35000,
         cost: 150,
@@ -43,11 +42,10 @@ export const boxTypes = {
             { type: 'tokens', min: 8, max: 12, weight: 40 }
         ]
     },
-
     rare: {
         name: 'Caja Rara',
         color: '#9B59B6',
-        emoji: '<:cajarara:1457161230837092444>',
+        emoji: '<:cajaregalorara:1473075668945342589>',
         spawnChance: 0.02,
         duration: 45000,
         cost: 250,
@@ -69,11 +67,10 @@ export const boxTypes = {
             { type: 'tokens', min: 12, max: 16, weight: 40 }
         ]
     },
-
     epic: {
         name: 'Caja Épica',
         color: '#E056FD',
-        emoji: '<:epica:1461838026064924702>',
+        emoji: '<:cajaregaloepica:1473075808732975187>',
         spawnChance: 0.01,
         duration: 50000,
         cost: 400,
@@ -95,11 +92,10 @@ export const boxTypes = {
             { type: 'tokens', min: 16, max: 20, weight: 50 }
         ]
     },
-
     legendary: {
         name: 'Caja Legendaria',
         color: '#F1C40F',
-        emoji: '<:cajalegendaria:1457160442924503083>',
+        emoji: '<:cajaregalolegendaria:1473075925854715916>',
         spawnChance: 0.005,
         duration: 60000,
         cost: 500,
@@ -124,7 +120,7 @@ export const boxTypes = {
     mystery: {
         name: 'Caja Misteriosa',
         color: '#1ABC9C',
-        emoji: '<:cajasorpresa:1457160106553643059>',
+        emoji: '<:cajaregalomisteriosa:1473076179958497484>',
         spawnChance: 0.01,
         duration: 40000,
         cost: 150,
@@ -135,7 +131,7 @@ export const boxTypes = {
     fortune: {
         name: 'Caja de la Fortuna',
         color: '#F39C12',
-        emoji: '<:fortune:1461838419931172994>',
+        emoji: '<:cajaregalofortuna:1473076373647261738>',
         spawnChance: 0.003,
         duration: 60000,
         cost: 600,
@@ -173,7 +169,7 @@ export const boxTypes = {
     mythic: {
         name: 'Caja Mítica',
         color: '#C0392B',
-        emoji: '<:mitica:1461839063823941825>',
+        emoji: '<:cajaregalomitica:1473076534301692105>',
         spawnChance: 0.001,
         duration: 70000,
         cost: 1000,
@@ -199,11 +195,10 @@ export const boxTypes = {
             { type: 'tokens', min: 30, max: 40, weight: 45 }
         ]
     },
-
     divine: {
         name: 'Caja Divina',
         color: '#FFFFFF',
-        emoji: '<:divinabox:1461839246179565801>',
+        emoji: '<:cajaregalodivina:1473076662198341682>',
         spawnChance: 0.0005,
         duration: 90000,
         cost: 2000,
@@ -225,11 +220,10 @@ export const boxTypes = {
             { type: 'tokens', min: 30, max: 60, weight: 40 }
         ]
     },
-
     divine_2: {
         name: 'Caja del Juicio Divino',
         color: '#FFFFFF',
-        emoji: '<:divinabox:1461839246179565801>',
+        emoji: '<:cajaregalojuiciodivino:1473076782646165747>',
         spawnChance: 0.0005,
         duration: 90000,
         cost: 2000,

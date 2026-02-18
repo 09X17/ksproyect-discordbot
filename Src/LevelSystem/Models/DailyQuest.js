@@ -132,7 +132,7 @@ const requirementSchema = new mongoose.Schema({
     timeRestrictions: {
         startTime: String, // "HH:MM"
         endTime: String,   // "HH:MM"
-        daysOfWeek: [Number] // 0-6 (Domingo a Sábado)
+        daysOfWeek: [Number] 
     }
 });
 
@@ -241,7 +241,7 @@ const statsSchema = new mongoose.Schema({
         }
     },
     averageCompletionTime: {
-        type: Number, // en segundos
+        type: Number,
         default: 0
     },
     fastestCompletion: {
@@ -256,7 +256,6 @@ const statsSchema = new mongoose.Schema({
 });
 
 const dailyQuestSchema = new mongoose.Schema({
-    // Identificación
     guildId: {
         type: String,
         required: true,
@@ -268,7 +267,6 @@ const dailyQuestSchema = new mongoose.Schema({
         sparse: true
     },
     
-    // Información básica
     title: {
         type: String,
         required: true,
@@ -287,7 +285,6 @@ const dailyQuestSchema = new mongoose.Schema({
         maxlength: 150
     },
     
-    // Clasificación
     type: {
         type: String,
         enum: ['daily', 'weekly', 'monthly', 'seasonal', 'achievement', 'tutorial', 'event', 'chain'],
@@ -433,7 +430,7 @@ const dailyQuestSchema = new mongoose.Schema({
     toObject: { virtuals: true }
 });
 
-// Índices compuestos para mejor performance
+
 dailyQuestSchema.index({ guildId: 1, type: 1, active: 1 });
 dailyQuestSchema.index({ guildId: 1, category: 1, difficulty: 1 });
 dailyQuestSchema.index({ guildId: 1, 'metadata.rarity': 1, active: 1 });
@@ -444,7 +441,7 @@ dailyQuestSchema.index({ 'requirements.minLevel': 1, 'requirements.maxLevel': 1 
 dailyQuestSchema.index({ 'objectives.type': 1 });
 dailyQuestSchema.index({ questId: 1 }, { unique: true, sparse: true });
 
-// Virtuals
+
 dailyQuestSchema.virtual('isAvailable').get(function() {
     const now = new Date();
     
@@ -473,7 +470,7 @@ dailyQuestSchema.virtual('isChainQuest').get(function() {
     return !!this.chainId;
 });
 
-// Métodos de instancia
+
 dailyQuestSchema.methods.checkCompletion = function(userProgress) {
     if (!userProgress || typeof userProgress !== 'object') {
         return false;
@@ -527,7 +524,6 @@ dailyQuestSchema.methods.calculateTotalReward = function() {
         items: this.rewards.items?.length || 0
     };
     
-    // Bonus por dificultad
     const difficultyMultiplier = {
         'tutorial': 0.5,
         'easy': 1,
@@ -726,8 +722,6 @@ dailyQuestSchema.pre('save', function(next) {
 });
 
 dailyQuestSchema.post('save', function(doc, next) {
-    // Actualizar estadísticas globales del sistema
-    // Esto podría disparar eventos o actualizar cache
     console.log(`Misión "${doc.title}" guardada/actualizada`);
     next();
 });

@@ -1,4 +1,4 @@
-import { MessageFlags, InteractionType, EmbedBuilder,  ButtonBuilder, ButtonStyle, ActionRowBuilder } from 'discord.js';
+import { MessageFlags, InteractionType, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } from 'discord.js';
 
 import TicketInteractionManager from '../Tickets/Managers/TicketInteractionManager.js';
 import handleShopInteraction from '../LevelSystem/Managers/ShopInteractions.js';
@@ -51,14 +51,14 @@ export default {
 
                 // ⚙️ Level Config
                 if (await handleConfigLevelInteraction(client, interaction)) return;
-                
+
                 // contest
-                if(await handleContestInteraction(client, interaction)) return;
-                
+                if (await handleContestInteraction(client, interaction)) return;
+
                 // Trade
                 if (await handleTradeInteraction(client, interaction)) return;
-                                
-                
+
+
                 if (await handleEmbedEditorInteraction(client, interaction)) return;
 
                 // 2️⃣ Sistema de embeds dinámicos
@@ -77,7 +77,7 @@ export default {
 
                 // 🎟️ Tickets
                 if (await ticketInteractionManager?.handleTicketInteraction(interaction)) return;
-                
+
                 if (await handleEmbedEditorInteraction(client, interaction)) return;
 
                 // 2️⃣ Sistema de embeds dinámicos
@@ -97,19 +97,19 @@ export default {
 
                 // 🎁 Lootboxes
                 if (await handleLootboxInteraction(client, interaction)) return;
-                
+
                 // Contest
-                if(await handleContestInteraction(client, interaction)) return;
+                if (await handleContestInteraction(client, interaction)) return;
 
                 // Trade
                 if (await handleTradeInteraction(client, interaction)) return;
-                
+
                 // rankcard
                 if (await handleRankcardColorSelect(client, interaction)) return;
-                
+
                 // lootboxx
-                if(await handleLootboxOpen(client, interaction)) return;
-                
+                if (await handleLootboxOpen(client, interaction)) return;
+
                 if (interaction.customId.startsWith('job_')) {
                     const jobs = Object.values(JobsConfig);
                     const [, action, pageStr] = interaction.customId.split('_');
@@ -142,6 +142,76 @@ export default {
                     });
                 }
 
+                if (interaction.customId.startsWith("upgrade|")) {
+                    const parts = interaction.customId.split("|");
+                    const toolId = parts[1]; 
+                    const user = await client.levelManager.getOrCreateUserLevel(
+                        interaction.guild.id,
+                        interaction.user.id
+                    );
+
+                    try {
+                        const result = await user.upgradeTool(toolId);
+
+                        await interaction.update({
+                            content: `<:verificado:1453073955467563008> Mejora completada.
+                              <:flechaizq:1469346308455272640> **NIVEL:** \`+${result.newLevel}\`
+                              <:flechaizq:1469346308455272640> **TIER ACTUAL:** \`${result.newTier}\``,
+                            embeds: [],
+                            components: []
+                        });
+
+
+                    } catch (err) {
+                        await interaction.update({
+                            content: `❌ ${err.message}`,
+                            embeds: [],
+                            components: []
+                        });
+                    }
+                }
+
+                if (interaction.customId === "upgrade_cancel") {
+                    await interaction.update({
+                        content: "❌ Mejora cancelada.",
+                        embeds: [],
+                        components: []
+                    });
+                }
+
+                if (interaction.customId.startsWith("craft_confirm_")) {
+
+                    const blueprintId = interaction.customId.replace("craft_confirm_", "");
+
+                    const result = await client.levelManager.craft(
+                        interaction.user.id,
+                        interaction.guild.id,
+                        blueprintId
+                    );
+
+                    if (!result.success) {
+                        return interaction.update({
+                            content: "<:cancelar:1469343007554928641> Falló el crafteo.",
+                            embeds: [],
+                            components: []
+                        });
+                    }
+
+                    return interaction.update({
+                        content: "<:verificado:1453073955467563008> ¡Crafteo exitoso!",
+                        components: []
+                    });
+                }
+
+                if (interaction.customId === "craft_cancel") {
+                    return interaction.update({
+                        content: "❌ Crafteo cancelado.",
+                        embeds: [],
+                        components: []
+                    });
+                }
+
+
             }
 
             // ================================
@@ -151,7 +221,7 @@ export default {
 
                 // 🎟️ Tickets
                 if (await ticketInteractionManager?.handleTicketInteraction(interaction)) return;
-                
+
                 if (await handleEmbedEditorInteraction(client, interaction)) return;
 
                 // 2️⃣ Sistema de embeds dinámicos
@@ -165,20 +235,20 @@ export default {
 
                 // ⚙️ Level Config
                 if (await handleConfigLevelInteraction(client, interaction)) return;
-                
+
                 // Contest
-                if(await handleContestInteraction(client, interaction)) return;
-                
+                if (await handleContestInteraction(client, interaction)) return;
+
                 // Trade
                 if (await handleTradeInteraction(client, interaction)) return;
-                
-                 // rankcard
+
+                // rankcard
                 if (await handleRankcardColorSelect(client, interaction)) return;
-                
+
                 // lootboxx
                 if (await handleLootboxOpen(client, interaction)) return;
 
-                                // ===== JOIN =====
+                // ===== JOIN =====
                 if (interaction.customId.startsWith('job_join_')) {
                     if (interaction.user.id !== interaction.customId.split('_')[2]) {
                         return interaction.reply({ content: '❌ Esto no es para ti.', flags: 64 });
@@ -249,7 +319,7 @@ export default {
                         components: []
                     });
                 }
-                
+
             }
 
             // ================================
@@ -417,9 +487,9 @@ function handleInteractionError(interaction, error) {
     };
 
     if (interaction.replied || interaction.deferred) {
-        interaction.followUp(payload).catch(() => {});
+        interaction.followUp(payload).catch(() => { });
     } else {
-        interaction.reply(payload).catch(() => {});
+        interaction.reply(payload).catch(() => { });
     }
 }
 

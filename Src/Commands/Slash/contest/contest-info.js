@@ -43,7 +43,6 @@ export default class ContestInfoCommand extends SlashCommand {
                 });
             }
 
-            // Crear contenedor informativo con Components V2
             const infoContainer = new ContainerBuilder()
                 .setAccentColor(0x5865F2)
                 .addTextDisplayComponents((textDisplay) =>

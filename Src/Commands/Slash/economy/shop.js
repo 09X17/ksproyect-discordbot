@@ -16,6 +16,7 @@ const SHOP_CATEGORIES = [
     { id: 'all', name: 'Todos', emoji: '<:categorias:1453081710357905551>' },
     { id: "permission", name: "Desbloquea permisos", emoji: "<:debilidad:1465843214358679694>", description: "Desbloquea pemisos como: Colores, Fondos" },
     { id: 'cosmetic', name: 'Compra relacionado a juegos', emoji: '<:diamante:1453080344810229921>', description: "Compra pases, Suscipciones, Juegos" },
+    { id: "tool", name: "Compra herramientas", emoji: "<:pico:1465516936439005359>", description: "Compra herramientas para minar"},
     { id: 'xp', name: 'Compra por experiencia', emoji: '<:xp:1453078768687255845>', description: "Compra items usando tu experiencia" },
     { id: 'economy', name: 'Compra por monedas/tokens', emoji: '<:bolsadedinero:1453079730579570931>', description: "Compra items usando monedas o tokens" },
     { id: 'boosts_user', name: 'Comprar Boosts de Usuario', emoji: '<:destello:1453080731516403773>', description: "Compra boosts para tu usuario" },
@@ -116,24 +117,22 @@ export default class ShopSlash extends SlashCommand {
         const embed = new EmbedBuilder()
             .setColor('#5865F2')
             .setTitle(`\`\`\`TIENDA DE ${interaction.guild.name.toUpperCase()}\`\`\``)
-            .setDescription(`<:categorias:1453081710357905551> \`CATEGORÍA:\` **${this.getCategoryName(category)}**\n<:dinero:1451695904351457330> __${user.coins} MONEDAS__ | <:tokens:1451695903080579192> __${user.tokens} TOKENS__ | <:xp:1453078768687255845> __${user.xp} XP__`)
+            .setDescription(`<:categorias:1453081710357905551> \`CATEGORÍA:\` **${this.getCategoryName(category)}**\n<:dinero:1451695904351457330> __${user.coins} MONEDAS__ | <:tokens:1451695903080579192> __${user.tokens} TOKENS__ | <:xp:1453078768687255845> __${user.xp} XP__\n<:flechaizq:1469346308455272640> <:founds:1471959862052257864> Tienes Fondos Para comprar / <:no_founds:1471959819354116287> No tienes Fondos para comprar\n<:flechaizq:1469346308455272640> *LOS ITEMS COMPRADOS QUE SEAN COSMÉTICOS SE PAGAN A INICIO DE MES, DEBE ABRIR UN TICKET*`)
+                                                                                                                                                                                                               
 
         if (!items.length) {
-            embed.setDescription(`<:no_comprobado:1453073957388419216> Esta Tienda se encuentra vacía.\n\n<:categorias:1453081710357905551> \`CATEGORÍA:\` **${this.getCategoryName(category)}**\n<:dinero:1451695904351457330> __${user.coins} MONEDAS__ | <:tokens:1451695903080579192> __${user.tokens} TOKENS__ | <:xp:1453078768687255845> __${user.xp} XP__`);
+            embed.setDescription(`<:no_comprobado:1453073957388419216> Esta Tienda se encuentra vacía.\n\n<:categorias:1453081710357905551> \`CATEGORÍA:\` **${this.getCategoryName(category)}**\n<:dinero:1451695904351457330> __${user.coins} MONEDAS__ | <:tokens:1451695903080579192> __${user.tokens} TOKENS__ | <:xp:1453078768687255845> __${user.xp} XP__\n<:flechaizq:1469346308455272640> | <:founds:1471959862052257864> - Tienes Fondos Para comprar / <:no_founds:1471959819354116287> - No tienes Fondos para comprar`);
             return embed;
         }
 
         for (const item of items) {
-
             const canAfford = this.canUserAfford(user, item.cost);
-
             const statusIcon = canAfford ? '<:founds:1471959862052257864>' : '<:no_founds:1471959819354116287>';
-            const badge = canAfford ? '' : '**INSUFICIENTE**';
 
             const itemInfo =
-                `${statusIcon} ${this.getItemEmoji(item.type)} **${item.name.toUpperCase()}**${badge}\n` +
-                `\`COSTO:\` ${this.formatCost(item.cost)} **|** ${item.stock === -1
-                    ? '`INFINITO` ♾️'
+                `${statusIcon} ${this.getItemEmoji(item.type)} **${item.name.toUpperCase()}**\n` +
+                `\`COSTO:\` ${this.formatCost(item.cost)}\n${item.stock === -1
+                    ? '`STOCK: INFINITO`'
                     : `\`STOCK: ${item.stock}\``
                 }\n` +
                 `\`DESCRIPCIÓN:\` ${item.description || 'Sin descripción'}`;
@@ -184,7 +183,7 @@ export default class ShopSlash extends SlashCommand {
                 row.addComponents(
                     new ButtonBuilder()
                         .setCustomId(`shop_buy_${item._id}`)
-                        .setLabel(item.name.slice(0, 10).toUpperCase())
+                        .setLabel(item.name.slice(0, 80).toUpperCase())
                         .setEmoji(this.getItemEmoji(item.type))
                         .setStyle(canAfford ? ButtonStyle.Secondary : ButtonStyle.Danger)
                         .setDisabled(!canAfford)
@@ -257,9 +256,9 @@ export default class ShopSlash extends SlashCommand {
 
     formatCost(cost = {}) {
         const parts = [];
-        if (cost.coins > 0) parts.push(`${cost.coins} Coins`);
-        if (cost.tokens > 0) parts.push(`${cost.tokens} Tokens`);
-        if (cost.xp > 0) parts.push(`${cost.xp} XP`);
+        if (cost.coins > 0) parts.push(`*${cost.coins} Monedas*`);
+        if (cost.tokens > 0) parts.push(`*${cost.tokens} Tokens*`);
+        if (cost.xp > 0) parts.push(`*${cost.xp} XP*`);
         return parts.join(' + ') || 'Gratis';
     }
 
@@ -277,7 +276,8 @@ export default class ShopSlash extends SlashCommand {
             consumable: '<:pocionmagica:1453100161508053052>',
             utility: '<:flujodefondos:1453080009919959112>',
             custom: '<:cajaregistradora:1453079878143574116>',
-            permission: "<:debilidad:1465843214358679694>"
+            permission: "<:debilidad:1465843214358679694>",
+            tool: "<:pico:1465516936439005359>"
         };
 
         return map[type] ?? '<:cajaregistradora:1453079878143574116>';

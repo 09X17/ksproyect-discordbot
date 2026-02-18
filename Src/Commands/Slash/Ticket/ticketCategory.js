@@ -23,8 +23,7 @@ export default class TicketCategoryCommand extends SlashCommand {
             data: new SlashCommandBuilder()
                 .setName("ticket-category")
                 .setDescription("Gestiona categorías de tickets")
-                
-                // Subcomando para añadir categoría
+            
                 .addSubcommand(sub =>
                     sub.setName("add")
                         .setDescription("Añadir categoría")
@@ -99,7 +98,6 @@ export default class TicketCategoryCommand extends SlashCommand {
     async execute(client, interaction) {
         const subcommand = interaction.options.getSubcommand();
         
-        // Buscar config
         let config = await GuildConfig.findOne({ guildId: interaction.guild.id });
         if (!config || !config.panels || config.panels.length === 0) {
             return interaction.reply({
@@ -108,11 +106,9 @@ export default class TicketCategoryCommand extends SlashCommand {
             });
         }
 
-        // Usar el primer panel (podrías añadir opción para seleccionar panel específico)
         const panelIndex = 0;
         const panel = config.panels[panelIndex];
 
-        // Asegurarse de que categories existe
         if (!panel.categories) panel.categories = [];
 
         if (subcommand === "add") {
@@ -144,7 +140,6 @@ export default class TicketCategoryCommand extends SlashCommand {
             limit: interaction.options.getInteger("limite") || 1
         };
 
-        // Verificar si ya existe una categoría con este valor
         if (panel.categories.some(c => c.value === newCat.value)) {
             return interaction.editReply({
                 content: "❌ Ya existe una categoría con este valor."
@@ -154,7 +149,6 @@ export default class TicketCategoryCommand extends SlashCommand {
         panel.categories.push(newCat);
         await config.save();
 
-        // Actualizar el mensaje del panel
         try {
             const channel = interaction.guild.channels.cache.get(panel.channelId);
             if (channel) {
@@ -198,7 +192,6 @@ export default class TicketCategoryCommand extends SlashCommand {
         panel.categories.splice(categoryIndex, 1);
         await config.save();
 
-        // Actualizar el mensaje del panel
         try {
             const channel = interaction.guild.channels.cache.get(panel.channelId);
             if (channel) {
@@ -251,7 +244,6 @@ export default class TicketCategoryCommand extends SlashCommand {
             return interaction.editReply({ content: "❌ No se encontró esa categoría." });
         }
 
-        // Validar emoji si se proporciona uno nuevo
         const newEmoji = interaction.options.getString("emoji");
         if (newEmoji && !isValidEmoji(newEmoji)) {
             return interaction.editReply({
@@ -266,7 +258,6 @@ export default class TicketCategoryCommand extends SlashCommand {
 
         await config.save();
 
-        // Actualizar el mensaje del panel
         try {
             const channel = interaction.guild.channels.cache.get(panel.channelId);
             if (channel) {

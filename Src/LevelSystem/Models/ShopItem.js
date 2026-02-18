@@ -50,6 +50,7 @@ const shopItemSchema = new mongoose.Schema({
             'role',
             'badge',
             'title',
+            "tool",
             'cosmetic',
             'consumable',
             'utility',
@@ -69,6 +70,7 @@ const shopItemSchema = new mongoose.Schema({
             'roles',
             'cosmetic',
             'utilities',
+            "tool",
             'permission',
             'limited'
         ],
@@ -85,8 +87,8 @@ const shopItemSchema = new mongoose.Schema({
         validate: {
             validator: function (value) {
                 return (value.coins || 0) > 0 ||
-                       (value.tokens || 0) > 0 ||
-                       (value.xp || 0) > 0;
+                    (value.tokens || 0) > 0 ||
+                    (value.xp || 0) > 0;
             },
             message: 'El item debe tener al menos un costo mayor a 0'
         }
@@ -94,7 +96,7 @@ const shopItemSchema = new mongoose.Schema({
 
     stock: {
         type: Number,
-        default: -1, // -1 = ilimitado
+        default: -1,
         min: -1
     },
 
@@ -112,10 +114,6 @@ const shopItemSchema = new mongoose.Schema({
         type: String,
         default: '#5865F2'
     },
-
-    /* =========================
-       DATA (Flexible per type)
-    ========================= */
 
     data: {
         type: mongoose.Schema.Types.Mixed,
@@ -139,10 +137,6 @@ const shopItemSchema = new mongoose.Schema({
         perDay: { type: Number, default: -1 }
     },
 
-    /* =========================
-       STATS
-    ========================= */
-
     stats: {
         purchases: { type: Number, default: 0 },
         revenue: { type: revenueSchema, default: () => ({}) },
@@ -158,9 +152,6 @@ const shopItemSchema = new mongoose.Schema({
     timestamps: true
 });
 
-/* =========================
-   INDEXES
-========================= */
 
 shopItemSchema.index({ guildId: 1, name: 1 }, { unique: true });
 shopItemSchema.index({ guildId: 1, type: 1 });
@@ -168,9 +159,6 @@ shopItemSchema.index({ guildId: 1, category: 1 });
 shopItemSchema.index({ guildId: 1, 'cost.coins': 1 });
 shopItemSchema.index({ guildId: 1, 'cost.tokens': 1 });
 
-/* =========================
-   METHODS
-========================= */
 
 shopItemSchema.methods.canPurchase = function (userLevel, member, purchasesToday = 0) {
 
@@ -206,9 +194,6 @@ shopItemSchema.methods.canPurchase = function (userLevel, member, purchasesToday
     return { canBuy: true, reason: '' };
 };
 
-/* =========================
-   APPLY EFFECTS
-========================= */
 
 shopItemSchema.methods.applyEffects = async function (userLevel, member) {
 
@@ -275,12 +260,47 @@ shopItemSchema.methods.applyEffects = async function (userLevel, member) {
         };
     }
 
+    if (this.type === 'tool') {
+
+        const toolId = this.data?.toolId;
+        if (!toolId) return { success: false };
+
+        const { toolsConfig } = await import('../Configs/toolsConfig.js');
+        const toolConfig = toolsConfig[toolId];
+
+        if (!toolConfig) {
+            return { success: false };
+        }
+
+        userLevel.crafting ??= {};
+        userLevel.crafting.tools ??= [];
+
+        userLevel.crafting.tools.push({
+            toolId: toolConfig.id,
+            name: toolConfig.name,
+            rarity: toolConfig.rarity,
+            durability: toolConfig.maxDurability,
+            maxDurability: toolConfig.maxDurability,
+            bonus: toolConfig.bonus,
+            equipped: false,
+            upgradeLevel: 0,
+            acquiredAt: new Date()
+        });
+
+        await userLevel.save();
+
+        return {
+            success: true,
+            tool: {
+                name: toolConfig.name,
+                rarity: toolConfig.rarity
+            }
+        };
+    }
+
     return effects;
 };
 
-/* =========================
-   REGISTER PURCHASE
-========================= */
 
 shopItemSchema.methods.registerPurchase = function (quantity = 1) {
 
@@ -297,8 +317,5 @@ shopItemSchema.methods.registerPurchase = function (quantity = 1) {
     this.stats.lastPurchase = new Date();
 };
 
-/* =========================
-   EXPORT
-========================= */
 
 export default mongoose.model('ShopItem', shopItemSchema);

@@ -109,11 +109,12 @@ function buildBasicModal(customId, title, item = {}) {
 
             new ActionRowBuilder().addComponents(
                 new TextInputBuilder()
-                    .setCustomId('cost_xp')
-                    .setLabel('Costo en XP')
+                    .setCustomId('type')
+                    .setLabel('Tipo de item')
                     .setStyle(TextInputStyle.Short)
-                    .setRequired(false)
-                    .setValue(cost.xp ? String(cost.xp) : '0')
+                    .setRequired(true)
+                    .setValue(safe(item.type, 30) || 'custom')
+                    .setMaxLength(30)
             )
         );
 }
@@ -242,6 +243,24 @@ function buildPermissionModal(customId, item = {}) {
         );
 }
 
+function buildToolModal(customId, item = {}) {
+
+    return new ModalBuilder()
+        .setCustomId(customId)
+        .setTitle('Configurar Herramienta')
+        .addComponents(
+            new ActionRowBuilder().addComponents(
+                new TextInputBuilder()
+                    .setCustomId('toolId')
+                    .setLabel('ID de herramienta (toolsConfig)')
+                    .setStyle(TextInputStyle.Short)
+                    .setRequired(true)
+                    .setValue(item.data?.toolId ?? '')
+                    .setPlaceholder('wooden_pickaxe')
+            )
+        );
+}
+
 
 // ===================================================
 // MAIN HANDLER
@@ -329,6 +348,17 @@ export default async function ShopAdminInteractions(client, interaction) {
                     .setStyle(ButtonStyle.Primary)
             );
         }
+
+        // 🛠 Tool (solo tools)
+        if (item.type === 'tool') {
+            buttons.push(
+                new ButtonBuilder()
+                    .setCustomId(`shopadmin_tool_${sid}`)
+                    .setLabel('🛠 Herramienta')
+                    .setStyle(ButtonStyle.Primary)
+            );
+        }
+
 
         return interaction.reply({
             content: `🛠️ **${item.name}** seleccionado. ¿Qué deseas editar?`,
@@ -548,7 +578,10 @@ export default async function ShopAdminInteractions(client, interaction) {
                     title: 'title',
 
                     permission: 'permission',
-                    custom: 'custom'
+                    custom: 'custom',
+                    tool: 'tool',
+                    tools: 'tool',
+
                 };
 
                 item.type = TYPE_MAP[normalizedType] ?? 'custom';
@@ -565,7 +598,9 @@ export default async function ShopAdminInteractions(client, interaction) {
                     title: 'general',
                     economy: 'economy',
                     permission: 'permission',
-                    custom: 'general'
+                    custom: 'general',
+                    tool: 'tool',
+
                 };
 
                 item.category = CATEGORY_MAP[item.type] ?? 'general';
@@ -865,6 +900,64 @@ export default async function ShopAdminInteractions(client, interaction) {
             flags: 64
         });
     }
+
+    if (interaction.isButton() && interaction.customId.startsWith('shopadmin_tool_')) {
+
+        const sid = interaction.customId.split('_').pop();
+        const session = getUserSession(userId);
+
+        if (!session || session.sid !== sid || !session.itemId) {
+            return interaction.reply({
+                content: '❌ Sesión expirada',
+                flags: 64
+            });
+        }
+
+        const item = await ShopItem.findById(session.itemId);
+        if (!item) return;
+
+        return interaction.showModal(
+            buildToolModal(`shopadmin_tool_modal_${sid}`, item)
+        );
+    }
+
+    if (interaction.isModalSubmit() &&
+        interaction.customId.startsWith('shopadmin_tool_modal_')) {
+
+        const sid = interaction.customId.split('_').pop();
+        const session = getUserSession(userId);
+
+        if (!session || session.sid !== sid || !session.itemId) {
+            return interaction.reply({
+                content: '❌ Sesión expirada',
+                flags: 64
+            });
+        }
+
+        const toolId = interaction.fields.getTextInputValue('toolId')?.trim();
+
+        if (!toolId) {
+            return interaction.reply({
+                content: '❌ Debes indicar un toolId válido',
+                flags: 64
+            });
+        }
+
+        await ShopItem.findByIdAndUpdate(session.itemId, {
+            type: 'tool',
+            category: 'utilities',
+            'data.toolId': toolId
+        });
+
+        USER_SESSIONS.delete(userId);
+
+        return interaction.reply({
+            content: `🛠 Herramienta configurada correctamente.\nToolID: \`${toolId}\``,
+            flags: 64
+        });
+    }
+
+
 
     return false;
 }

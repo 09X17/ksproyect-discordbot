@@ -17,7 +17,6 @@ export default class TicketMessageCommand extends SlashCommand {
                 .setName("ticket-message")
                 .setDescription("Configura mensajes personalizados")
 
-                // Subcomando para mensaje de ticket general
                 .addSubcommand(sub =>
                     sub.setName("ticket")
                         .setDescription("Configura el mensaje que se envía al crear un ticket")

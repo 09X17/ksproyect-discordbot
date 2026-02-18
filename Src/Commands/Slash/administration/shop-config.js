@@ -76,13 +76,17 @@ export default class ShopAdminCommand extends SlashCommand {
 
             if (items.length) {
                 components.push(new ActionRowBuilder().addComponents(
-                    new StringSelectMenuBuilder().setCustomId('shopadmin_items_menu').setPlaceholder('📦 Selecciona un item para editar').addOptions(
-                        items.map(item => ({
-                            label: safe(item.name, 25),
-                            description: safe(`${item.price} ${item.currency} • ${item.enabled ? '🟢 ACTIVO' : '🔴 INACTIVO'}`, 100),
-                            value: safe(item.id, 100)
-                        }))
-                    )
+                    new StringSelectMenuBuilder().setCustomId('shopadmin_items_menu').setPlaceholder('📦 Selecciona un item para editar')
+                        .addOptions(
+                            items.map(item => ({
+                                label: safe(item.name, 25),
+                                description: safe(
+                                    `${formatCost(item.cost)} • ${item.active ? '🟢 ACTIVO' : '🔴 INACTIVO'}`,
+                                    100
+                                ),
+                                value: safe(item.id, 100)
+                            }))
+                        )
                 ));
 
                 components.push(new ActionRowBuilder().addComponents(
@@ -98,4 +102,13 @@ export default class ShopAdminCommand extends SlashCommand {
             });
         }
     }
+}
+
+
+function formatCost(cost = {}) {
+    const parts = [];
+    if (cost.coins > 0) parts.push(`${cost.coins} Coins`);
+    if (cost.tokens > 0) parts.push(`${cost.tokens} Tokens`);
+    if (cost.xp > 0) parts.push(`${cost.xp} XP`);
+    return parts.join(' + ') || 'Gratis';
 }

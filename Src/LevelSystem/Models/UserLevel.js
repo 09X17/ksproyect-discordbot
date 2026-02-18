@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import { boxTypes, getRandomInRange } from "../Managers/boxTypesConfig.js";
 import JobsConfig from "../Managers/JobsConfig.js";
+import { toolsConfig, TOOL_RARITIES } from "../Configs/toolsConfig.js";
+import { materialsConfig } from "../Configs/materialConfigs.js";
 
 const userLevelSchema = new mongoose.Schema({
     userId: {
@@ -281,7 +283,71 @@ const userLevelSchema = new mongoose.Schema({
             daily: Date,
             weekly: Date
         }
-    }
+    },
+    crafting: {
+        inventory: {
+            capacity: { type: Number, default: 80000 },
+            weight: { type: Number, default: 0 }
+        },
+        activeZone: {
+            type: String,
+            default: "forest_mine"
+        },
+        equippedToolId: {
+            type: String,
+            default: null
+        },
+        miningCooldownUntil: {
+            type: Date,
+            default: null
+        },
+        tools: [{
+            toolId: { type: String, required: true },
+            name: String,
+            rarity: String,
+            tier: { type: Number, default: 1 },
+            durability: { type: Number, default: 100 },
+            maxDurability: { type: Number, default: 100 },
+            upgradeLevel: { type: Number, default: 0 },
+            enchantments: [{
+                enchantId: String,
+                bonus: {
+                    quantityMultiplier: Number,
+                    rareChanceBonus: Number,
+                    qualityBonus: Number
+                }
+            }],
+            bonus: {
+                quantityMultiplier: { type: Number, default: 1 },
+                rareChanceBonus: { type: Number, default: 0 },
+                qualityBonus: { type: Number, default: 0 }
+            },
+            acquiredAt: { type: Date, default: Date.now }
+        }],
+        materials: [{
+            materialId: { type: String, required: true },
+            quantity: { type: Number, default: 0 },
+            quality: { type: Number, default: 100 }, // 1–100
+            rarity: { type: String, required: true },
+            metadata: {
+                refined: { type: Boolean, default: false },
+                bound: { type: Boolean, default: false }, // no trade
+                origin: String // job/event/box
+            }
+        }],
+        blueprints: [{
+            blueprintId: String,
+            level: { type: Number, default: 1 },
+            discoveredAt: Date
+        }],
+        stats: {
+            craftedItems: { type: Number, default: 0 },
+            failedCrafts: { type: Number, default: 0 },
+            totalMaterialsUsed: { type: Number, default: 0 },
+            minedMaterials: { type: Number, default: 0 },
+            miningSessions: { type: Number, default: 0 }
+        }
+    },
 },
     { timestamps: true }
 );
@@ -574,9 +640,6 @@ userLevelSchema.methods.purchaseItem = async function (item, quantity = 1) {
         }
     }
 
-    /* =========================
-       HISTORIAL
-    ========================= */
 
     this.purchaseHistory.push({
         itemId: item._id,
@@ -590,9 +653,6 @@ userLevelSchema.methods.purchaseItem = async function (item, quantity = 1) {
         purchasedAt: now
     });
 
-    /* =========================
-       APLICAR EFECTOS
-    ========================= */
 
     let effects = {};
 
@@ -636,9 +696,6 @@ userLevelSchema.methods.purchaseItem = async function (item, quantity = 1) {
         throw new Error(`Error aplicando efectos del item: ${err.message}`);
     }
 
-    /* =========================
-       INVENTARIO (solo tipos válidos)
-    ========================= */
 
     const inventoryTypes = ['consumable', 'utility'];
 
@@ -662,15 +719,9 @@ userLevelSchema.methods.purchaseItem = async function (item, quantity = 1) {
         }
     }
 
-    /* =========================
-       ACTUALIZAR STATS DEL ITEM
-    ========================= */
 
     item.registerPurchase(quantity);
 
-    /* =========================
-       GUARDAR
-    ========================= */
 
     await this.save();
     await item.save();
@@ -732,6 +783,45 @@ userLevelSchema.methods.applyItemEffects = function (item, quantity = 1) {
             effects.roleGranted = item.data?.roleId;
             break;
         }
+
+        case 'tool': {
+
+            const toolId = item.data?.toolId;
+            if (!toolId) break;
+
+            const toolConfig = toolsConfig[toolId];
+            if (!toolConfig) break;
+
+            this.crafting ??= {};
+            this.crafting.tools ??= [];
+
+            for (let i = 0; i < quantity; i++) {
+
+                this.crafting.tools.push({
+                    toolId: toolConfig.id,
+                    name: toolConfig.name,
+                    rarity: toolConfig.rarity,
+                    tier: toolConfig.tier ?? 1,
+                    durability: toolConfig.maxDurability,
+                    maxDurability: toolConfig.maxDurability,
+                    bonus: toolConfig.bonus,
+                    upgradeLevel: 0,
+                    enchantments: [],
+                    acquiredAt: new Date()
+                });
+
+            }
+
+            this.markModified("crafting.tools");
+
+            effects.toolGranted = {
+                toolId: toolConfig.id,
+                quantity
+            };
+
+            break;
+        }
+
     }
 
     return effects;
@@ -1177,6 +1267,374 @@ userLevelSchema.methods.workJob = async function () {
         rankUp
     };
 };
+
+userLevelSchema.methods.getMaterial = function (materialId) {
+    return this.crafting.materials.find(m => m.materialId === materialId) || null;
+};
+
+userLevelSchema.methods.getUsedCraftingWeight = function () {
+    return this.crafting.materials.reduce((total, mat) => {
+        const config = materialsConfig[mat.materialId];
+        if (!config) return total;
+        return total + (config.weight * mat.quantity);
+    }, 0);
+};
+
+userLevelSchema.methods.canCarryMaterial = function (materialId, quantity) {
+    const config = materialsConfig[materialId];
+    if (!config) throw new Error("Material no válido");
+
+    const currentWeight = this.getUsedCraftingWeight();
+    const newWeight = currentWeight + (config.weight * quantity);
+
+    return newWeight <= this.crafting.inventory.capacity;
+};
+
+userLevelSchema.methods.addMaterial = async function (materialId, quantity = 1, options = {}) {
+    if (quantity <= 0) return false;
+
+    const config = materialsConfig[materialId];
+    if (!config) throw new Error("Material no válido");
+
+    if (!this.canCarryMaterial(materialId, quantity)) {
+        throw new Error("Inventario lleno");
+    }
+
+    const quality = options.quality ?? Math.floor(Math.random() * 31) + 70;
+
+    const existing = this.getMaterial(materialId);
+
+    if (existing) {
+        const totalQty = existing.quantity + quantity;
+        existing.quality = Math.floor(
+            ((existing.quality * existing.quantity) + (quality * quantity)) / totalQty
+        );
+        existing.quantity = totalQty;
+    } else {
+        this.crafting.materials.push({
+            materialId,
+            quantity,
+            quality,
+            rarity: config.rarity,
+            metadata: {
+                refined: false,
+                bound: options.bound ?? false,
+                origin: options.origin ?? "unknown"
+            }
+        });
+    }
+
+    this.markModified("crafting.materials");
+    return true;
+};
+
+userLevelSchema.methods.removeMaterial = function (materialId, quantity = 1) {
+    const material = this.getMaterial(materialId);
+    if (!material || material.quantity < quantity) {
+        throw new Error("Material insuficiente");
+    }
+
+    material.quantity -= quantity;
+
+    if (material.quantity <= 0) {
+        this.crafting.materials = this.crafting.materials.filter(
+            m => m.materialId !== materialId
+        );
+    }
+
+    this.crafting.stats.totalMaterialsUsed += quantity;
+    this.markModified("crafting.materials");
+};
+
+userLevelSchema.methods.hasMaterials = function (requirements) {
+    return requirements.every(req => {
+        const mat = this.getMaterial(req.materialId);
+        return mat && mat.quantity >= req.quantity;
+    });
+};
+
+userLevelSchema.methods.consumeMaterials = function (requirements) {
+    requirements.forEach(req => {
+        this.removeMaterial(req.materialId, req.quantity);
+    });
+};
+
+userLevelSchema.methods.getCraftQualityBonus = function (requirements) {
+    let totalQuality = 0;
+    let totalQty = 0;
+
+    requirements.forEach(req => {
+        const mat = this.getMaterial(req.materialId);
+        if (mat) {
+            totalQuality += mat.quality * req.quantity;
+            totalQty += req.quantity;
+        }
+    });
+
+    if (totalQty === 0) return 0;
+
+    const avgQuality = totalQuality / totalQty;
+
+    return (avgQuality - 70) / 300;
+};
+
+userLevelSchema.methods.craft = async function (blueprintId) {
+
+    const blueprint = blueprintsConfig[blueprintId];
+    if (!blueprint) throw new Error("Blueprint no válido");
+
+    if (!this.hasMaterials(blueprint.requires)) {
+        throw new Error("Materiales insuficientes");
+    }
+
+    const qualityBonus = this.getCraftQualityBonus(blueprint.requires);
+    const successRate = blueprint.successRate + qualityBonus;
+
+    const roll = Math.random();
+    const success = roll <= successRate;
+
+    this.consumeMaterials(blueprint.requires);
+
+    if (success) {
+
+        await this.applyCraftResult(blueprint.result);
+
+        this.crafting.stats.craftedItems++;
+
+    } else {
+
+        this.crafting.stats.failedCrafts++;
+
+    }
+
+    this.markModified("crafting");
+
+    return {
+        success,
+        successRate: Math.min(successRate, 0.99)
+    };
+};
+
+userLevelSchema.methods.applyCraftResult = async function (result) {
+
+    switch (result.type) {
+
+        case "material":
+            await this.addMaterial(result.materialId, result.quantity);
+            break;
+
+        case "coins":
+            this.coins += result.quantity;
+            break;
+
+        case "tokens":
+            this.tokens += result.quantity;
+            break;
+
+        case "lootbox":
+            await this.addLootBoxToInventory(result.boxType, result.name, result.quantity);
+            break;
+
+        default:
+            throw new Error("Tipo de resultado no soportado");
+    }
+};
+
+userLevelSchema.methods.refine = async function (blueprintId) {
+    return this.craft(blueprintId);
+};
+
+userLevelSchema.methods.upgradeCraftingCapacity = async function (amount, cost) {
+
+    if (this.coins < cost) throw new Error("Monedas insuficientes");
+
+    this.coins -= cost;
+    this.crafting.inventory.capacity += amount;
+
+    this.markModified("crafting.inventory");
+
+    return this.crafting.inventory.capacity;
+};
+
+userLevelSchema.methods.equipTool = async function (toolId) {
+
+    if (!this.crafting?.tools?.length)
+        throw new Error("No tienes herramientas.");
+
+    const tool = this.crafting.tools.find(t => t.toolId === toolId);
+
+    if (!tool)
+        throw new Error("No posees esta herramienta.");
+
+    if (tool.durability <= 0)
+        throw new Error("La herramienta está rota.");
+
+    this.crafting.equippedToolId = toolId;
+
+    this.markModified("crafting");
+
+    return tool;
+};
+
+userLevelSchema.methods.repairTool = async function (toolId) {
+
+    const tool = this.crafting.tools.find(t => t.toolId === toolId);
+    if (!tool) throw new Error("Herramienta no encontrada.");
+
+    const config = toolsConfig[toolId];
+    if (!config) throw new Error("Configuración inválida.");
+
+    const rarityData = TOOL_RARITIES[config.rarity];
+
+    const repairCost = Math.floor(
+        config.repair.baseCostCoins *
+        (1 - (tool.durability / config.maxDurability)) *
+        rarityData.repairMultiplier
+    );
+
+    if (this.coins < repairCost) {
+        throw new Error("Monedas insuficientes para reparar.");
+    }
+
+    // Coste en materiales
+    for (const mat of config.repair.materialCost) {
+        const userMat = this.crafting.materials.find(m => m.materialId === mat.materialId);
+        if (!userMat || userMat.quantity < mat.quantity) {
+            throw new Error("Materiales insuficientes para reparar.");
+        }
+    }
+
+    // Descontar coins
+    this.coins -= repairCost;
+
+    // Descontar materiales
+    for (const mat of config.repair.materialCost) {
+        const userMat = this.crafting.materials.find(m => m.materialId === mat.materialId);
+        userMat.quantity -= mat.quantity;
+    }
+
+    tool.durability = config.maxDurability;
+
+    this.markModified("crafting");
+
+    return {
+        repaired: true,
+        cost: repairCost
+    };
+};
+
+userLevelSchema.methods.upgradeTool = async function (toolId) {
+
+    const tool = this.crafting.tools.find(t => t.toolId === toolId);
+    if (!tool) throw new Error("Herramienta no encontrada.");
+
+    const baseCost = 200;
+    const upgradeCost = baseCost * (tool.upgradeLevel + 1);
+
+    if (this.coins < upgradeCost) {
+        throw new Error("Monedas insuficientes.");
+    }
+
+    this.coins -= upgradeCost;
+
+    tool.upgradeLevel++;
+    tool.maxDurability += 20;
+    tool.durability += 20;
+
+    if (tool.bonus.quantityMultiplier)
+        tool.bonus.quantityMultiplier += 0.02;
+
+    if (tool.bonus.rareChanceBonus !== undefined)
+        tool.bonus.rareChanceBonus += 0.01;
+
+    /* =========================
+       ⬆ SISTEMA DE TIER
+    ========================= */
+
+    const tierThreshold = 3; // cada 3 upgrades sube tier
+    const maxTier = 4;
+
+    const newTier = Math.floor(tool.upgradeLevel / tierThreshold) + 1;
+
+    if (newTier > tool.tier && newTier <= maxTier) {
+        tool.tier = newTier;
+    }
+
+    this.markModified("crafting.tools");
+
+    return {
+        upgraded: true,
+        newLevel: tool.upgradeLevel,
+        newTier: tool.tier
+    };
+};
+
+userLevelSchema.methods.setActiveZone = async function (zoneId) {
+    this.crafting.activeZone = zoneId;
+    this.markModified("crafting");
+};
+
+userLevelSchema.methods.getCraftingStatus = function (requirements) {
+
+    const missing = [];
+    const available = [];
+
+    for (const req of requirements) {
+
+        const userMat = this.getMaterial(req.materialId);
+        const ownedQty = userMat?.quantity ?? 0;
+
+        if (ownedQty < req.quantity) {
+            missing.push({
+                materialId: req.materialId,
+                required: req.quantity,
+                owned: ownedQty,
+                missing: req.quantity - ownedQty
+            });
+        }
+
+        available.push({
+            materialId: req.materialId,
+            required: req.quantity,
+            owned: ownedQty
+        });
+    }
+
+    return {
+        canCraft: missing.length === 0,
+        missing,
+        available
+    };
+};
+
+userLevelSchema.methods.canMine = function () {
+
+    const now = new Date();
+
+    if (!this.crafting.miningCooldownUntil)
+        return { allowed: true };
+
+    if (this.crafting.miningCooldownUntil <= now)
+        return { allowed: true };
+
+    return {
+        allowed: false,
+        remaining: this.crafting.miningCooldownUntil - now
+    };
+};
+
+userLevelSchema.methods.applyMiningCooldown = async function (minutes = 3) {
+
+    const now = new Date();
+    const cooldown = new Date(now.getTime() + minutes * 60 * 1000);
+
+    this.crafting.miningCooldownUntil = cooldown;
+
+    this.markModified("crafting");
+
+    return cooldown;
+};
+
 
 userLevelSchema.set('toObject', { getters: true });
 userLevelSchema.set('toJSON', { getters: true });

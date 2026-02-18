@@ -13,6 +13,8 @@ import LootBoxManager from './LootBoxManager.js';
 import LootBoxSpawner from './LootBoxSpawner.js';
 import JobsManager from './JobsManager.js';
 import BlackMarketManager from './BlackMarketManager.js';
+import MiningManager from './MiningManager.js';
+import CraftingManager from './CraftingManager.js';
 
 export default class LevelManager {
     constructor(client) {
@@ -37,6 +39,8 @@ export default class LevelManager {
             this.eventManager
         );
         this.blackMarketManager = new BlackMarketManager(client, this);
+        this.miningManager = new MiningManager(client, this)
+        this.craftingManager = new CraftingManager(client, this)
 
         this.leaderboardCache = new Map();
         this.setupBoostCleanup();
@@ -550,7 +554,7 @@ export default class LevelManager {
 
         if (newLevel > oldLevel) {
             userLevel.level = newLevel;
-            await userLevel.save();
+         //   await userLevel.save();
 
             this.client.logger.info(
                 `LEVEL DETECTED ${userId}: ${oldLevel} → ${newLevel}`
@@ -563,7 +567,7 @@ export default class LevelManager {
                 context
             );
         } else {
-            await userLevel.save();
+          //  await userLevel.save();
         }
 
         return {
@@ -1384,5 +1388,44 @@ export default class LevelManager {
     async blackMarketLaunder(userId, guildId) {
         return this.blackMarketManager.launder(userId, guildId);
     }
+
+    // ========== MINING METHODS ==========
+
+    async mine(userId, guildId) {
+        const user = await this.getOrCreateUserLevel(guildId, userId);
+        return await this.miningManager.mine(user);
+    }
+
+    async setMiningZone(userId, guildId, zoneId) {
+        const user = await this.getOrCreateUserLevel(guildId, userId);
+        return await this.miningManager.setMiningZone(user, zoneId);
+    }
+
+    // ========== CRAFTING METHODS ==========
+
+    async craft(userId, guildId, blueprintId) {
+        const user = await this.getOrCreateUserLevel(guildId, userId);
+        return await this.craftingManager.craft(user, blueprintId);
+    }
+
+    async getBlueprint(blueprintId) {
+        return this.craftingManager.getBlueprint(blueprintId);
+    }
+
+    async getAvailableBlueprints(userId, guildId) {
+        const user = await this.getOrCreateUserLevel(guildId, userId);
+        return this.craftingManager.getAvailableBlueprints(user);
+    }
+
+    async canCraft(userId, guildId, blueprintId) {
+        const user = await this.getOrCreateUserLevel(guildId, userId);
+        return this.craftingManager.canCraft(user, blueprintId);
+    }
+
+    async getCraftingInventory(userId, guildId) {
+        const user = await this.getOrCreateUserLevel(guildId, userId);
+        return user.crafting.materials;
+    }
+
 
 }

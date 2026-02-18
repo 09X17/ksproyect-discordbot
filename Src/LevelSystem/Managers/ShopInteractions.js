@@ -246,10 +246,10 @@ async function handleBuyButton(interaction) {
 
     const embed = new EmbedBuilder()
         .setColor("#A6FFD6")
-        .setTitle('🛒 CONFIRMAR COMPRA')
+        .setTitle('\`CONFIRMAR COMPRA\`')
         .setDescription(
-            `¿Deseas comprar **${item.name.toUpperCase()}**?\n\n` +
-            `💰 **Costo:** ${formatCost(item.cost)}`
+            `<:flechaizq:1469346308455272640> ¿Deseas comprar **${item.name.toUpperCase()}**?\n\n` +
+            `<:diamante1:1468314139331133440> \`COSTO:\` ${formatCost(item.cost)}`
         );
 
     const row = new ActionRowBuilder().addComponents(
@@ -417,13 +417,13 @@ function formatCost(cost = {}) {
     const parts = [];
 
     if (cost.coins > 0)
-        parts.push(`${cost.coins} 🪙 Coins`);
+        parts.push(`${cost.coins} <:dinero:1451695904351457330> *Monedas*`);
 
     if (cost.tokens > 0)
-        parts.push(`${cost.tokens} 🎟 Tokens`);
+        parts.push(`${cost.tokens} <:tokens:1451695903080579192> *Tokens*`);
 
     if (cost.xp > 0)
-        parts.push(`${cost.xp} ⭐ XP`);
+        parts.push(`${cost.xp} <:xp:1453078768687255845> *XP*`);
 
     return parts.join(' + ') || 'Gratis';
 }
@@ -433,19 +433,19 @@ function formatEffects(effects = {}) {
     let text = '';
 
     if (effects.coinsGained)
-        text += `\n🪙 Monedas obtenidas: **${effects.coinsGained}**`;
+        text += `\n<:dinero:1451695904351457330> \`MONEDAS OBTENIDAS\`: **${effects.coinsGained}**`;
 
     if (effects.tokensGained)
-        text += `\n🎟 Tokens obtenidos: **${effects.tokensGained}**`;
+        text += `\n<:tokens:1451695903080579192> \`TOKENS OBTENIDOS:\` **${effects.tokensGained}**`;
 
     if (effects.xpGained)
-        text += `\n⭐ XP obtenida: **${effects.xpGained}**`;
+        text += `\n<:xp:1453078768687255845> \`XP OBTENIDA:\` **${effects.xpGained}**`;
 
     if (effects.permissionGranted)
-        text += `\n🔓 Permiso desbloqueado: **${effects.permissionGranted}**`;
+        text += `\n<:debilidad:1465843214358679694> \`PERMISO DESBLOQUEAD:\` **${effects.permissionGranted}**`;
 
     if (effects.accentColorApplied)
-        text += `\n🎨 Color aplicado: **${effects.accentColorApplied}**`;
+        text += `\n<:paletadecolor:1462503084159664188> \`COLOR APLICADO:\` **${effects.accentColorApplied}**`;
 
     return text;
 }
