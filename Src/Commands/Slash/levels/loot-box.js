@@ -27,17 +27,20 @@ export default class LootBoxForceCommand extends SlashCommand {
                                 .setDescription('Tipo de caja')
                                 .setRequired(true)
                                 .addChoices(
-                                    { name: '📦 Común', value: 'common' },
-                                    { name: '🟢 Poco Común', value: 'uncommon' },
-                                    { name: '🎁 Rara', value: 'rare' },
-                                    { name: '🟣 Épica', value: 'epic' },
-                                    { name: '💎 Legendaria', value: 'legendary' },
-                                    { name: '❓ Misteriosa', value: 'mystery' },
-                                    { name: '🍀 Fortuna', value: 'fortune' },
-                                    { name: '⚡ Experiencia', value: 'xp_boost' },
-                                    { name: '🔥 Mítica', value: 'mythic' },
-                                    { name: '✨ Divina', value: 'divine' },
-                                    { name: "Jucio Divino", value: "divine_2" }
+                                    { name: 'Caja Común', value: 'common' },
+                                    { name: 'Caja Poco Común', value: 'uncommon' },
+                                    { name: 'Caja Rara', value: 'rare' },
+                                    { name: 'Caja Épica', value: 'epic' },
+                                    { name: 'Caja Legendaria', value: 'legendary' },
+                                    { name: 'Caja Misteriosa', value: 'mystery' },
+                                    { name: 'Caja Mítica', value: 'mythic' },
+                                    { name: 'Caja Divina', value: 'divine' },
+                                    { name: "Caja Jucio Divino", value: "divine_2" },
+                                    { name: "Caja de Monedas", value: "coin_box" },
+                                    { name: "Caja de Tokens", value: "token_box" },
+                                    { name: "Caja del Tesoro", value: "treasure_box" },
+                                    { name: "Caja Millonaria", value: "millionaire_box" },
+                                    { name: "Caja Suprema de Tokens", value: "supreme_tokens" },
                                 )
 
                         )

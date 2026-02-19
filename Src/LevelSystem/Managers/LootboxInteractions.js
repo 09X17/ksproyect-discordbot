@@ -277,7 +277,9 @@ async function handleLootBoxSelect(client, interaction) {
 }
 
 async function handleDailyBoxOpen(client, interaction) {
-    await safeDefer(interaction);
+    //  await safeDefer(interaction);
+    await interaction.deferUpdate();
+
 
     const [, , targetUserId, boxType] = interaction.customId.split('_');
 
@@ -347,7 +349,13 @@ async function handleDailyBoxOpen(client, interaction) {
             .setDescription(`<:flechaderecha:1455684486938362010> <@${interaction.user.id}> **RECIBIÓ:** ${rewardText}`)
             .setThumbnail("https://cdn.discordapp.com/attachments/1261326873237913711/1464064059497517249/recompensa.png?ex=69741b68&is=6972c9e8&hm=4798bf8a9146506c919f7ea11aa17c3bfb6463493b0ca0e562451aa20a614873&");
 
-        await interaction.editReply({ embeds: [embed], components: [] });
+        await interaction.message.edit({
+            components: []
+        }).catch(() => { });
+
+        await interaction.followUp({
+            embeds: [embed]
+        });
 
         global.dailyBoxes?.delete(`${interaction.user.id}_${interaction.guild.id}`);
 

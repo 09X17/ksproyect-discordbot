@@ -7,3 +7,7 @@
   
 ## Modelos
  - Cambiar multiples saves()
+
+ ## Cambios por hacer
+
+ - Mejorar Categoría (slashcommands tickets)

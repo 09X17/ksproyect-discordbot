@@ -261,7 +261,105 @@ export const boxTypes = {
                 weight: 40
             }
         ]
-    }
+    },
+    coin_box: {
+        name: 'Caja de Monedas',
+        color: '#D4AF37',
+        emoji: '<:coin_box:1474081820172882092>',
+        spawnChance: 0.02,
+        duration: 35000,
+        cost: 250,
+        lucky: {
+            chance: 0.08,
+            minMultiplier: 1,
+            maxMultiplier: 2
+        },
+        rewards: [
+            { type: 'coins', min: 650, max: 850, weight: 100 }
+        ]
+    },
+    token_box: {
+        name: 'Caja de Tokens',
+        color: '#16A085',
+        emoji: '<:token_box:1474081819212386355>',
+        spawnChance: 0.015,
+        duration: 40000,
+        cost: 300,
+        lucky: {
+            chance: 0.10,
+            minMultiplier: 1,
+            maxMultiplier: 2
+        },
+        rewards: [
+            { type: 'tokens', min: 450, max: 550, weight: 100 }
+        ]
+    },
+    treasure_box: {
+        name: 'Caja del Tesoro',
+        color: '#E67E22',
+        emoji: '<:treasure_box:1474081817882525886>',
+        spawnChance: 0.008,
+        duration: 50000,
+        cost: 700,
+        lucky: {
+            chance: 0.15,
+            minMultiplier: 2,
+            maxMultiplier: 2
+        },
+        extraDrops: {
+            chance: 0.25,
+            maxExtra: 2
+        },
+        rewards: [
+            { type: 'coins', min: 650, max: 900, weight: 60 },
+            { type: 'tokens', min: 300, max: 400, weight: 40 }
+        ]
+    },
+    millionaire_box: {
+        name: 'Caja Millonaria',
+        color: '#27AE60',
+        emoji: '<:millionaire_box:1474081816884543580>',
+        spawnChance: 0.003,
+        duration: 60000,
+        cost: 1200,
+
+        lucky: {
+            chance: 0.20,
+            minMultiplier: 2,
+            maxMultiplier: 3
+        },
+
+        jackpot: {
+            chance: 0.05,
+            reward: { type: 'coins', amount: 500 }
+        },
+
+        rewards: [
+            { type: 'coins', min: 1000, max: 1200, weight: 70 },
+            { type: 'tokens', min: 500, max: 600, weight: 30 }
+        ]
+    },
+    supreme_tokens: {
+        name: 'Caja Suprema de Tokens',
+        color: '#8E44AD',
+        emoji: '<:supreme_tokens:1474081815508815935>',
+        spawnChance: 0.0015,
+        duration: 65000,
+        cost: 1500,
+        lucky: {
+            chance: 0.25,
+            minMultiplier: 2,
+            maxMultiplier: 3
+        },
+        jackpot: {
+            chance: 0.07,
+            reward: { type: 'tokens', amount: 150 }
+        },
+        rewards: [
+            { type: 'tokens', min: 700, max: 1000, weight: 100 }
+        ]
+    },
+
 };
 
 export function getRandomInRange(min, max) {

@@ -857,6 +857,10 @@ export default class InventoryCardGenerator {
         if (nameLower.includes('Caja de la Fortuna') || nameLower.includes('fortune')) return 'FORTUNA';
         if (nameLower.includes('Caja de Experiencia') || nameLower.includes('xp_boost')) return 'EXPERIENCIA';
         if (nameLower.includes("Caja del Juicio Divino") || nameLower.includes('divine_2')) return 'JUICIO DIVINO';
+        if (nameLower.includes('Caja de Monedas') || nameLower.includes('coin_box')) return 'CAJA MONEDAS';
+        if (nameLower.includes('Caja de Tokens') || nameLower.includes('token_box')) return 'CAJA TOKENS';
+        if (nameLower.includes('Caja del Tesoro') || nameLower.includes('treasure_box')) return 'CAJA DE TESORO';
+        if (nameLower.includes('Caja Suprema de Tokens') || nameLower.includes('supreme_tokens')) return 'CAJA SUPREMA TOKENS';
         return 'COMÚN';
     }
 

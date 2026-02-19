@@ -1,12 +1,18 @@
 import UserLevel from '../Models/UserLevel.js';
 import ShopItem from '../Models/ShopItem.js';
-import GuildConfigLevel from '../Models/GuildConfig.js';
 
 export default class EconomyManager {
     static CURRENCIES = ['coins', 'tokens', 'xp'];
     static MAX_DAILY_CLAIMS = 1;
-    static DAILY_BASE_REWARD = 50;
-    static DAILY_STREAK_BONUS = 10;
+    static DAILY_BASE_REWARD = 150;
+    static DAILY_STREAK_BONUS = 30;
+    static STREAK_MILESTONES = {
+        3: { coins: 100 },
+        7: { coins: 250, tokens: 20 },
+        14: { coins: 500, tokens: 30 },
+        30: { coins: 1500, tokens: 40 },
+        60: { coins: 3000, tokens: 50 }
+    };
     static MILESTONE_BONUSES = {
         5: { coins: 50, tokens: 1 },
         10: { coins: 100, tokens: 2 },
@@ -108,7 +114,6 @@ export default class EconomyManager {
         }
     }
 
-
     async _getMember(guildId, userId) {
         try {
             const guild = this.client.guilds.cache.get(guildId);
@@ -127,10 +132,6 @@ export default class EconomyManager {
 
         return (Date.now() - lastUpdate) < this.CACHE_TTL;
     }
-
-    // ===========================================
-    // GESTIÓN DE MONEDAS
-    // ==========================================
 
     async giveCurrency(userId, guildId, currency, amount, source = 'system') {
         try {
@@ -304,14 +305,13 @@ export default class EconomyManager {
         }
     }
 
-    // ===========================================
-    // RECOMPENSA DIARIA
-    // ===========================================
-
     async giveDailyReward(userId, guildId) {
         try {
             const userLevel = await this._getUserLevel(guildId, userId);
             const now = new Date();
+
+            if (!userLevel.stats) userLevel.stats = {};
+            if (!userLevel.stats.streakDays) userLevel.stats.streakDays = 0;
 
             const lastDaily = userLevel.stats.lastDailyReward
                 ? new Date(userLevel.stats.lastDailyReward)
@@ -325,12 +325,36 @@ export default class EconomyManager {
                 };
             }
 
+            const yesterday = new Date(now.getTime() - 86400000);
+            const hadStreakYesterday =
+                userLevel.stats.lastStreak &&
+                new Date(userLevel.stats.lastStreak).toDateString() === yesterday.toDateString();
+
+            userLevel.stats.streakDays = hadStreakYesterday
+                ? userLevel.stats.streakDays + 1
+                : 1;
+
+            const streakDays = userLevel.stats.streakDays;
+
             const base = EconomyManager.DAILY_BASE_REWARD;
-            const streakBonus = EconomyManager.DAILY_STREAK_BONUS * (userLevel.stats.streakDays || 0);
-            const baseAmount = base + streakBonus;
+
+            const streakBonus = Math.floor(
+                EconomyManager.DAILY_STREAK_BONUS *
+                Math.log2(streakDays + 1)
+            );
+
+            const streakMultiplier = 1 + Math.min(streakDays / 100, 0.5);
+
+            const levelScaling = 1 + (userLevel.level * 0.02);
+
+            let totalAmount = Math.floor(
+                (base + streakBonus) *
+                streakMultiplier *
+                levelScaling
+            );
 
             const effectiveMultiplier = userLevel.getEffectiveBoostMultiplier();
-            let totalAmount = Math.floor(baseAmount * effectiveMultiplier);
+            totalAmount = Math.floor(totalAmount * effectiveMultiplier);
 
             const eventResult = await this._applyEventBonuses(
                 userId,
@@ -342,29 +366,49 @@ export default class EconomyManager {
 
             totalAmount = eventResult.finalAmount;
 
-            const yesterday = new Date(now.getTime() - 86400000);
-            const hadStreakYesterday =
-                userLevel.stats.lastStreak?.toDateString() === yesterday.toDateString();
+            let luckyBonus = 0;
+            if (Math.random() < 0.10) {
+                luckyBonus = Math.floor(totalAmount * 0.5);
+                totalAmount += luckyBonus;
+            }
+
+            let milestoneReward = null;
+            const milestone = EconomyManager.STREAK_MILESTONES[streakDays];
+
+            if (milestone) {
+                milestoneReward = milestone;
+
+                if (milestone.coins) {
+                    userLevel.coins += milestone.coins;
+                }
+
+                if (milestone.tokens) {
+                    userLevel.tokens += milestone.tokens;
+                }
+            }
 
             userLevel.stats.lastDailyReward = now;
             userLevel.stats.lastStreak = now;
-            userLevel.stats.streakDays = hadStreakYesterday
-                ? (userLevel.stats.streakDays || 0) + 1
-                : 1;
 
             userLevel.coins += totalAmount;
+
             await userLevel.save();
 
             return {
                 success: true,
                 base,
                 streakBonus,
+                streakMultiplier,
+                levelScaling,
                 boostMultiplier: effectiveMultiplier,
                 eventBonus: eventResult.bonus,
+                luckyBonus,
+                milestoneReward,
                 totalAmount,
-                streakDays: userLevel.stats.streakDays,
+                streakDays,
                 newBalance: userLevel.coins
             };
+
         } catch (error) {
             this.client.logger.error(`❌ Error dando daily a ${userId}:`, error);
             return { success: false, reason: error.message || 'Error interno' };
@@ -375,12 +419,16 @@ export default class EconomyManager {
         try {
             const userLevel = await this._getUserLevel(guildId, userId);
             const now = new Date();
+
+            if (!userLevel.stats) userLevel.stats = {};
+
             const lastDaily = userLevel.stats.lastDailyReward || new Date(0);
+            const streakDays = userLevel.stats.streakDays || 0;
 
             const canClaim = lastDaily.toDateString() !== now.toDateString();
 
-            let nextDailyBonus = 0;
             let nextDailyMultiplier = 1.0;
+            let nextDailyBonus = 0;
 
             if (this.levelManager?.eventManager) {
                 const coinEvent = this.levelManager.eventManager.getActiveEventMultiplier('coins');
@@ -388,35 +436,53 @@ export default class EconomyManager {
                 nextDailyBonus = coinEvent.bonus;
             }
 
+            const simulatedStreak = canClaim ? streakDays + 1 : streakDays;
+
+            const base = EconomyManager.DAILY_BASE_REWARD;
+
+            const streakBonus = Math.floor(
+                EconomyManager.DAILY_STREAK_BONUS *
+                Math.log2(simulatedStreak + 1)
+            );
+
+            const streakMultiplier = 1 + Math.min(simulatedStreak / 100, 0.5);
+            const levelScaling = 1 + (userLevel.level * 0.02);
+            const boostMultiplier = userLevel.getEffectiveBoostMultiplier();
+
+            let estimatedReward = Math.floor(
+                (base + streakBonus) *
+                streakMultiplier *
+                levelScaling *
+                boostMultiplier *
+                nextDailyMultiplier
+            ) + nextDailyBonus;
+
             return {
                 canClaim,
                 lastClaimed: lastDaily,
-                streakDays: userLevel.stats.streakDays || 0,
-                nextAvailable: canClaim ? now : new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1),
-                estimatedReward: Math.floor(
-                    (EconomyManager.DAILY_BASE_REWARD + (EconomyManager.DAILY_STREAK_BONUS * (userLevel.stats.streakDays || 0))) *
-                    nextDailyMultiplier
-                ) + nextDailyBonus,
+                streakDays,
+                nextAvailable: canClaim
+                    ? now
+                    : new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1),
+                estimatedReward,
                 nextBonusInfo: {
                     multiplier: nextDailyMultiplier,
                     bonus: nextDailyBonus,
                     hasEvent: nextDailyMultiplier > 1.0 || nextDailyBonus > 0
                 }
             };
+
         } catch (error) {
             this.client.logger.error('❌ Error obteniendo daily status:', error);
             return {
                 canClaim: true,
                 lastClaimed: null,
                 streakDays: 0,
+                estimatedReward: EconomyManager.DAILY_BASE_REWARD,
                 nextBonusInfo: { hasEvent: false }
             };
         }
     }
-
-    // ============================================
-    // BONUS POR NIVEL
-    // ============================================
 
     async handleLevelUpBonus(userId, guildId, newLevel) {
         try {
@@ -469,9 +535,6 @@ export default class EconomyManager {
         }
     }
 
-    // ============================================
-    // SISTEMA DE TIENDA
-    // ============================================
 
     async purchaseItem(userId, guildId, itemId, quantity = 1) {
         try {

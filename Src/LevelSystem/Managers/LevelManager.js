@@ -15,6 +15,7 @@ import JobsManager from './JobsManager.js';
 import BlackMarketManager from './BlackMarketManager.js';
 import MiningManager from './MiningManager.js';
 import CraftingManager from './CraftingManager.js';
+import PinataManager from './PinataManager.js';
 
 export default class LevelManager {
     constructor(client) {
@@ -41,6 +42,7 @@ export default class LevelManager {
         this.blackMarketManager = new BlackMarketManager(client, this);
         this.miningManager = new MiningManager(client, this)
         this.craftingManager = new CraftingManager(client, this)
+        this.pinataManager = new PinataManager(client, this);
 
         this.leaderboardCache = new Map();
         this.setupBoostCleanup();

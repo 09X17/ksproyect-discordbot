@@ -47,6 +47,7 @@ export const blueprintsConfig = {
             quantity: 1
         }
     },
+
     basic_craft_box: {
         id: "basic_craft_box",
         name: "Caja Común",
@@ -155,6 +156,76 @@ export const blueprintsConfig = {
             quantity: 1
         }
     },
+    coin_box_craft_box: {
+        id: "coin_box_craft_box",
+        name: "Caja de Monedas",
+        emoji: "<:coin_box:1474081820172882092>",
+        description: "Caja de monedas creada con materiales comunes.",
+        category: "box",
+        requiredLevel: 12,
+        successRate: 0.7,
+        craftingCostCoins: 200,
+        craftingCostTokens: 15,
+        requires: [
+            { materialId: "void_essence", quantity: 3 },
+            { materialId: "ancient_core", quantity: 6 },
+            { materialId: "obsidian_fragment", quantity: 5 },
+            { materialId: "mythril_ore", quantity: 5 }
+        ],
+        result: {
+            type: "lootbox",
+            boxType: "coin_box",
+            name: "Caja de Monedas",
+            quantity: 1
+        }
+    },
+    millionaire_box_craft_box: {
+        id: "millionaire_box_craft_box",
+        name: "Caja Millonaria",
+        emoji: "<:millionaire_box:1474081816884543580>",
+        description: "Caja de millonario creada con materiales comunes.",
+        category: "box",
+        requiredLevel: 12,
+        successRate: 0.7,
+        craftingCostCoins: 200,
+        craftingCostTokens: 15,
+        requires: [
+            { materialId: "void_essence", quantity: 5 },
+            { materialId: "ancient_core", quantity: 8 },
+            { materialId: "obsidian_fragment", quantity: 6 },
+            { materialId: "mythril_ore", quantity: 6 }
+        ],
+        result: {
+            type: "lootbox",
+            boxType: "millionaire_box",
+            name: "Caja Millonaria",
+            quantity: 1
+        }
+    },
+    supreme_tokens_craft_box: {
+        id: "supreme_tokens_craft_box",
+        name: "Caja Suprema de Tokens",
+        emoji: "<:supreme_tokens:1474081815508815935>",
+        description: "Caja de tokens supremos creada con materiales raros.",
+        category: "box",
+        requiredLevel: 12,
+        successRate: 0.7,
+        craftingCostCoins: 200,
+        craftingCostTokens: 15,
+        requires: [
+            { materialId: "void_essence", quantity: 8 },
+            { materialId: "ancient_core", quantity: 8 },
+            { materialId: "obsidian_fragment", quantity: 8 },
+            { materialId: "mythril_ore", quantity: 8 }
+        ],
+        result: {
+            type: "lootbox",
+            boxType: "supreme_tokens",
+            name: "Caja Suprema de Tokens",
+            quantity: 1
+        }
+    },
+
     coin_bundle_small: {
         id: "coin_bundle_small",
         name: "Bolsa de Monedas",
@@ -192,6 +263,7 @@ export const blueprintsConfig = {
             quantity: 300
         }
     },
+
     coin_bundle_virtual: {
         id: "coin_bundle_virtual",
         name: "Monedas (Crafting)",
